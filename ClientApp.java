@@ -44,21 +44,22 @@ public class ClientApp
 
     private static String processResponse(String res) {
         String[] stuff = res.split("<text>|</text>");
+        if(stuff[0].contains("404 Not Found")) return "FILE NOT FOUND";
         if(stuff.length < 2) return res;
         String tml = stuff[1];
-        System.out.println(tml);
         if(!tml.contains("<embed>")) return tml;
-        System.out.println("Contains <embed> tag: " + tml);
         String[] strs = tml.split("<embed>|</embed>");
         String req = "GET /" + strs[1].trim() + " HTTP/" + version;
         transportLayer.send(req.getBytes());
         try{
             byte[] byteArray = transportLayer.receive();
-            String str = processResponse(new String(byteArray));
+            String received = new String(byteArray);
+            String str = processResponse(received);
             strs[1] = str;
             String randomname = "";
-            for(String s : strs) randomname.concat(s);
-            System.out.println(randomname);
+            for(String s : strs) {
+                randomname = randomname + s;
+            }
             return randomname;
         } catch(Exception e) {return null;}
         //return "d";
