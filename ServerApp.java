@@ -23,7 +23,7 @@ public class ServerApp
                     break;
                 String req = new String ( byteArray );
                 System.out.println( req );
-                String res = makeResponse(req.split("/|HTTP/"));
+                String res = makeResponse(req.split("/|HTTP/|/nIf-Modified-Since:"));
                 if(res == null) {
                     System.out.println("Response is null?");
                     continue;
@@ -42,12 +42,18 @@ public class ServerApp
         }
         switch(req[0].trim()) {
             case "GET":
-                String file = getFile(req[1].trim());
-                if(file == null) {
-                    return NOT_FOUND;
-                } else {
-                    return OK + "\n\n" + file;
-                }
+                    String file = getFile(req[1].trim());
+                    if(file == null) {
+                        return NOT_FOUND;
+                    } else {
+                        if(req[2] != null){
+                            Date date = Date.parse(req[2]);
+                            long orgDate = date.LONG;
+                            if(file.lastModified() < orgDate)
+                                return NOT_MODIFIED;
+                        }
+                        return OK + "\n\n" + file;
+                    }
             default:
                 System.out.println("Not a HTTP method");
                 return null;
