@@ -1,6 +1,8 @@
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
 //This class represents the client application
 public class ClientApp
@@ -21,6 +23,7 @@ public class ClientApp
         while( line != null && !line.equals("") )
         {
             //convert lines into byte array, send to transoport layer and wait for response
+            // System.out.printf("%ta, %<te %<tb %<tY %<tT", new Date());
             String req = "GET /" + line + " HTTP/" + version;
             byte[] byteArray = req.getBytes();
             if(!transportLayer.send(byteArray)) {
