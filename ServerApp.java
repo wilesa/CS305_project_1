@@ -47,8 +47,9 @@ public class ServerApp
                         return NOT_FOUND;
                     } else {
                         if(req[2] != null){
-                            Date date = Date.parse(req[2]);
-                            long orgDate = date.LONG;
+                            // Date date = DateFormat.parse(req[2]);
+                            // long orgDate = date.LONG;
+                            long orgDate = long.parseLong(req[2].trim);
                             if(file.lastModified() < orgDate)
                                 return NOT_MODIFIED;
                         }
