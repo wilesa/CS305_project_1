@@ -31,6 +31,7 @@ public class ClientApp
             String str = new String ( byteArray );
             System.out.println( "Received: " + str );
             String tml = processResponse(str);
+            System.out.println(tml);
             // String[] strs = str.split("<text>|</text>");
             // String text;
             // if(strs.length > 1) text = processResponse(strs[1]);
@@ -43,19 +44,21 @@ public class ClientApp
 
     private static String processResponse(String res) {
         String[] stuff = res.split("<text>|</text>");
+        if(stuff.length < 2) return res;
         String tml = stuff[1];
         System.out.println(tml);
         if(!tml.contains("<embed>")) return tml;
+        System.out.println("Contains <embed> tag: " + tml);
         String[] strs = tml.split("<embed>|</embed>");
         String req = "GET /" + strs[1].trim() + " HTTP/" + version;
-        System.out.println(req);
         transportLayer.send(req.getBytes());
         try{
             byte[] byteArray = transportLayer.receive();
-            String str = new String(byteArray);
-            strs[1] = processResponse(str);
+            String str = processResponse(new String(byteArray));
+            strs[1] = str;
             String randomname = "";
             for(String s : strs) randomname.concat(s);
+            System.out.println(randomname);
             return randomname;
         } catch(Exception e) {return null;}
         //return "d";
