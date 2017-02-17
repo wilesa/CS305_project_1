@@ -12,6 +12,14 @@ public class ServerApp
     private static String NOT_FOUND = "HTTP/1.1 404 Not Found";
 
     public static void main(String[] args) throws Exception {
+        HTTP http = new HTTP("1.1");
+        http.set_ok();
+        http.set_if_modified("now");
+        http.set_content(getFile("hello.tml"));
+        String httpstring = http.toString();
+        //System.out.println(httpstring);
+        HTTP newHttp = HTTP.fromString(httpstring);
+        System.out.println(newHttp.toString());
         //create a new transport layer for server (hence true) (wait for client)
         TransportLayer transportLayer = new TransportLayer(true, "1.1");
         while( true ) {
@@ -55,7 +63,6 @@ public class ServerApp
     }
 
     private static String getFile(String filename) {
-        System.out.println(filename);
         try{
             return new String(Files.readAllBytes(Paths.get(filename)), StandardCharsets.UTF_8); 
         } catch(Exception e) {
