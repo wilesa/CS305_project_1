@@ -15,8 +15,12 @@ public class HTTP {
     }
 
     public HTTP(byte[] httpArray) {
+        this.headers = new ArrayList<>();
         String httpString = new String(httpArray);
-        String lines[] = httpString.split("\\r?\\n");
+        String lines[] = httpString.split("\r?\n");
+
+        // for(int i=0; i<lines.length;i++)
+        //     System.out.println("Line " + i  + " in lines: " + lines[i]);
 
         if(lines[0].contains("HTTP/1.0")) this.version = "1.0";
         else if(lines[0].contains("HTTP/1.1")) this.version = "1.1";
@@ -26,20 +30,26 @@ public class HTTP {
         else if(lines[0].contains("200")) this.set_ok();
         else if(lines[0].contains("304")) this.set_not_modified();
         else if(lines[0].contains("404")) this.set_not_found();
+        else this.set_not_found();
         
-        if(lines.length == 1) return;
+        if(lines.length > 1) {
+            if(!lines[1].trim().isEmpty() && lines[1].contains("If-Modified-Since")) {
+                this.set_if_modified_p(lines[1]);
+            }
+            else {
+                String content = "";
+                for(int i = 1; i < lines.length; i++) {
+                    content = content + "\n" + lines[i];
+            }
 
-        if(!lines[1].trim().isEmpty() && lines[1].contains("If-Modified-Since")) {
-            this.headers = new ArrayList<>();
-            this.set_if_modified_p(lines[1]);
+            // if(lines.length >= 3) {
+            //     String content = "";
+            //     for(int i = 2; i < lines.length; i++) {
+            //         content = content + lines[i] +"\n";
+            //     }
+                this.set_content(content);
+            }
         }
-
-        if(lines.length < 3) return;
-        String content = "";
-        for(int i = 2; i < lines.length; i++) {
-            content = content + lines[i] +"\n";
-        }
-        this.set_content(content);
     }
 
     public void set_get(String url) {
@@ -65,9 +75,18 @@ public class HTTP {
     
 
     public void set_content(String content){
-        this.content = content;
+        this.content = content;                // String req = new String ( byteArray );
+                // System.out.println( req );
+                // String res = makeResponse(req.split("/|HTTP/"));
     }
 
+    public String getFileName(){
+        if(!isGet()) return null;
+        String[] temp = get_status().split("/|HTTP/");
+        return temp[1].trim();
+    }
+
+    public boolean isGet() {return get_status().contains("GET");} 
     public boolean isOk() {return get_status().contains("200");}
     public boolean isNotModified() {return get_status().contains("304");}
     public boolean isNotFound() {return get_status().contains("404");}
@@ -81,11 +100,19 @@ public class HTTP {
 
 
     public String toString(){
-        if(this.start_line == null) return null;
-        String http = this.start_line + "\n";
-        for(String s : this.headers) http = http + s + "\n";
-        if(this.content != null) http = http + "\n" + this.content;
-        return http;
+        try{
+            if(this.start_line == null) return null;
+            String http = this.start_line;
+            if(!this.headers.isEmpty())
+                for(int i=0;i<this.headers.size();i++) 
+                    http = http + "\n" + this.headers.get(i);
+            if(this.content != null) http = http + "\n" + this.content;
+            return http;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return "fail";
+        }
     }
 
     
