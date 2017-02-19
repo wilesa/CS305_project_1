@@ -3,6 +3,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Date;
 import java.text.SimpleDateFormat;
+import java.io.File;
+import java.nio.file.Files;
 
 //This class represents the client application
 public class ClientApp
@@ -19,25 +21,43 @@ public class ClientApp
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         String line = reader.readLine();
 
+        try{
+            File cache = new File("cache");
+            if(!cache.exists())
+                cache.mkdir();
+            // if(!Files.exists("Cache")) Files.createDirectory("Cache");
+        }
+        catch(Exception e){
+            System.out.println("Failed to initialize cache");
+        }
+
         //while line is not empty
         while( line != null && !line.equals("") )
         {
             //convert lines into byte array, send to transoport layer and wait for response
             // System.out.printf("%ta, %<te %<tb %<tY %<tT", new Date());
-            String req = "GET /" + line + " HTTP/" + version;
-            byte[] byteArray = req.getBytes();
-            if(!transportLayer.send(byteArray)) {
-                System.out.println("Could not send message");
-                continue;
-            }
-            byteArray = transportLayer.receive();
-            String str = new String ( byteArray );
-            System.out.println( "Received: " + str );
-            String tml = processResponse(str);
-            System.out.println(tml);
-            // String[] strs = str.split("<text>|</text>");
-            // String text;
-            // if(strs.length > 1) text = processResponse(strs[1]);
+            // File inCache = new File("cache/" + line);
+            // if(inCache.exists()){
+
+            // }
+
+            // else{
+                // inCache.createNewFile();
+                String req = "GET /" + line + " HTTP/" + version;
+                byte[] byteArray = req.getBytes();
+                if(!transportLayer.send(byteArray)) {
+                    System.out.println("Could not send message");
+                    continue;
+                }
+                byteArray = transportLayer.receive();
+                String str = new String ( byteArray );
+                System.out.println( "Received: " + str );
+                String tml = processResponse(str);
+                System.out.println(tml);
+                // String[] strs = str.split("<text>|</text>");
+                // String text;
+                // if(strs.length > 1) text = processResponse(strs[1]);
+            // }
 
             //read next line
             line = reader.readLine();
