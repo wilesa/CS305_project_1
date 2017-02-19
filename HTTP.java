@@ -14,6 +14,34 @@ public class HTTP {
         this.version = version;
     }
 
+    public HTTP(byte[] httpArray) {
+        String httpString = new String(httpArray);
+        String lines[] = httpString.split("\\r?\\n");
+
+        if(lines[0].contains("HTTP/1.0")) this.version = "1.0";
+        else if(lines[0].contains("HTTP/1.1")) this.version = "1.1";
+        else this.version = "1.1";
+
+        if(lines[0].contains("GET")) this.set_get_p(lines[0]);
+        else if(lines[0].contains("200")) this.set_ok();
+        else if(lines[0].contains("304")) this.set_not_modified();
+        else if(lines[0].contains("404")) this.set_not_found();
+        
+        if(lines.length == 1) return;
+
+        if(!lines[1].trim().isEmpty() && lines[1].contains("If-Modified-Since")) {
+            this.headers = new ArrayList<>();
+            this.set_if_modified_p(lines[1]);
+        }
+
+        if(lines.length < 3) return;
+        String content = "";
+        for(int i = 2; i < lines.length; i++) {
+            content = content + lines[i] +"\n";
+        }
+        this.set_content(content);
+    }
+
     public void set_get(String url) {
         this.start_line = "GET /" + url + " HTTP/" + this.version;
     }
@@ -59,6 +87,8 @@ public class HTTP {
         if(this.content != null) http = http + "\n" + this.content;
         return http;
     }
+
+    
 
     public static HTTP fromString(String httpString) {
         HTTP http;

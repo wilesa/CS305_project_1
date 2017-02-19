@@ -18,9 +18,8 @@ public class ServerApp
         http.set_content(getFile("hello.tml"));
         String httpstring = http.toString();
         System.out.println(httpstring);
-        HTTP newHttp = HTTP.fromString(httpstring);
+        HTTP newHttp = new HTTP(httpstring.getBytes());
         System.out.println(newHttp.toString());
-        System.out.println(newHttp.get_headers().size());
         //create a new transport layer for server (hence true) (wait for client)
         TransportLayer transportLayer = new TransportLayer(true, "1.1");
         while( true ) {
