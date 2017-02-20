@@ -120,7 +120,7 @@ public class HTTP {
         }
         catch(Exception e){
             e.printStackTrace();
-            return "fail";
+            return "failed http to string";
         }
     }
 
