@@ -223,7 +223,7 @@ public class ClientApp
         //     return randomname;
         // } catch(Exception e) {return null;}
         //return "d";
-    }
+    // }
 
     // private static Boolean sendGet(String req){
     //     HTTP message = new HTTP(version);

@@ -15,6 +15,8 @@ public class ServerApp
     private static String NOT_MODIFIED = "HTTP/1.1 304 Not Modified";
     private static String NOT_FOUND = "HTTP/1.1 404 Not Found";
 
+    private static Boolean autoEmbed = true;
+
     public static void main(String[] args) throws Exception {
         // HTTP http = new HTTP("1.1");
         // http.set_ok();
@@ -77,13 +79,6 @@ public class ServerApp
             return response;
         } 
 
-        if(req.isIfModified()){
-            if(!hasBeenModified(req.getLastModified(), req.getFileName())) {
-                response.set_not_modified();
-                return response; 
-            }
-        }
-
         String name = req.getFileName();
         // System.out.println("FILE NAME: " + name);
         if(name == null) {
@@ -96,12 +91,39 @@ public class ServerApp
             response.set_not_found();
             return response;
         }
-        else{
-            // System.out.println("file found!");
-            response.set_ok();
-            response.set_content(file);
-            return response;
+
+        if(autoEmbed && file.contains("<embed>")){
+            HTTP embed = new HTTP("1.1");
+            String[] strs = file.split("<embed>|</embed>");
+            if(req.isIfModified() && !hasBeenModified(req.getLastModified(), req.getFileName()))
+                 embed.set_if_modified(req.getLastModified());
+            try{
+                embed.set_get(strs[1].trim());
+                HTTP next = makeResponse(embed);
+                if(next.isNotFound()) return next;
+                if(next.isNotModified()) return next;
+
+                //rebuild message after split
+                String[] temp = next.get_content().split("<text>|</text>");
+                strs[1] = temp[1];
+                String out = "";
+                for(String s : strs) {
+                    out = out + s;
+                }
+                file = out;
+            } catch(Exception e) {e.printStackTrace(); return null;}
         }
+
+        else if(req.isIfModified()){
+            if(!hasBeenModified(req.getLastModified(), req.getFileName())) {
+                response.set_not_modified();
+                return response; 
+            }
+        }
+
+        response.set_ok();
+        response.set_content(file);
+        return response;
 
         // switch(req[0].trim()) {
         //     case "GET":
@@ -116,6 +138,7 @@ public class ServerApp
         //         return null;
         // }
     }
+
 
     private static String getFile(String filename) {
         try{
