@@ -86,6 +86,15 @@ public class HTTP {
         return temp[1].trim();
     }
 
+    public String getLastModified(){
+        if(get_headers().isEmpty()) return "0";
+        String head = get_headers().get(0);
+        if(!head.contains("If-Modified-Since")) return "0";
+        int index = head.indexOf(":");
+        String mod = head.substring(index + 1);
+        return mod.trim();
+    }
+
     public boolean isGet() {return get_status().contains("GET");} 
     public boolean isOk() {return get_status().contains("200");}
     public boolean isNotModified() {return get_status().contains("304");}

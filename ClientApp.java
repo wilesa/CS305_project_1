@@ -19,6 +19,10 @@ public class ClientApp
     private static String version;
     private static TransportLayer transportLayer;
 
+
+    //Change this boolean to use or not use the cache
+    private static Boolean useCache = true; 
+
     public static void main(String[] args) throws Exception {
         try {
             version = args[0];
@@ -29,10 +33,11 @@ public class ClientApp
         String line = reader.readLine();
 
         try{
-            File cache = new File("cache");
-            if(!cache.exists())
-                cache.mkdir();
-            // if(!Files.exists("Cache")) Files.createDirectory("Cache");
+            if(useCache){
+                File cache = new File("cache");
+                if(!cache.exists())
+                    cache.mkdir();
+            }
         }
         catch(Exception e){
             System.out.println("Failed to initialize cache");
@@ -57,7 +62,12 @@ public class ClientApp
                 // String str = new String ( byteArray );
                 // System.out.println( "Received: " + str );
                 // System.out.println("******** \n");
+                Calendar calendar = Calendar.getInstance();
+                Long before = calendar.getTimeInMillis();
                 String tml = processRequest(line);
+                Calendar after = Calendar.getInstance();
+                Long diff = after.getTimeInMillis() - before;
+                System.out.println("Time in ms: " + diff);
                 System.out.println(tml);
                 // String[] strs = str.split("<text>|</text>");
                 // String text;
@@ -70,10 +80,13 @@ public class ClientApp
         }
     }
 
+    //This method generates a GET http call with the user's unput.
+    //If caching is on, this method will send a time modified with GET request
+    //Also will write received tml to a file in the cache
     private static String processRequest(String req) {
         HTTP message = new HTTP(version);
         message.set_get(req);
-        if(Files.exists(Paths.get("cache/" + req))) {
+        if(useCache && Files.exists(Paths.get("cache/" + req))) {
             message.set_if_modified(makeDate("cache/" + req));
         }
 
@@ -85,15 +98,23 @@ public class ClientApp
 
         byteArray = transportLayer.receive();
         HTTP response = new HTTP(byteArray);
+        //If 404
         if(response.isNotFound()) return "FILE NOT FOUND";
+        //If 304
         else if(response.isNotModified()) return processTML(getFile("cache/" + req));
+        //If something else, but doesn't contain a body
         else if(!response.hasContent()) return response.get_status();
+        //if contains a body, write to cache if cache is enabled
         else {
-            writeFile("cache/" + req, response.get_content());
+            if(useCache) writeFile("cache/" + req, response.get_content());
             return processTML(response.get_content());
         }
     }
 
+
+    //This method handles a tml data packet.
+    //It will remove all <text> and <embed> tags
+    //Also will send a request for embeded files if they exist
     private static String processTML(String tml) {
         if(tml.contains("<text>")){
             String[] temp;
@@ -106,6 +127,7 @@ public class ClientApp
         String[] strs = tml.split("<embed>|</embed>");
         try{
             String str = processRequest(strs[1].trim());
+            //rebuild message after split
             strs[1] = str;
             String randomname = "";
             for(String s : strs) {
@@ -152,35 +174,35 @@ public class ClientApp
 
 
 
-    private static String processResponse(String res) {
-        HTTP http = new HTTP(res.getBytes());
-        if(http.isNotFound()) return "FILE NOT FOUND";
-        if(!http.hasContent()) return res;
-        else{
-            String tml = http.get_content();
-            System.out.println(tml);
-            System.out.println("******** \n");
-            if(tml.contains("<text>")){
-                String[] temp;
-                temp = res.split("<text>|</text>");
-                tml = temp[1];
-            }
-            if(!tml.contains("<embed>")) return tml;
-            String[] strs = tml.split("<embed>|</embed>");
-            String req = "GET /" + strs[1].trim() + " HTTP/" + version;
-            transportLayer.send(req.getBytes());
-            try{
-                byte[] byteArray = transportLayer.receive();
-                String received = new String(byteArray);
-                String str = processResponse(received);
-                strs[1] = str;
-                String randomname = "";
-                for(String s : strs) {
-                    randomname = randomname + s;
-                }
-                return randomname;
-            } catch(Exception e) {return null;}
-        }
+    // private static String processResponse(String res) {
+    //     HTTP http = new HTTP(res.getBytes());
+    //     if(http.isNotFound()) return "FILE NOT FOUND";
+    //     if(!http.hasContent()) return res;
+    //     else{
+    //         String tml = http.get_content();
+    //         System.out.println(tml);
+    //         System.out.println("******** \n");
+    //         if(tml.contains("<text>")){
+    //             String[] temp;
+    //             temp = res.split("<text>|</text>");
+    //             tml = temp[1];
+    //         }
+    //         if(!tml.contains("<embed>")) return tml;
+    //         String[] strs = tml.split("<embed>|</embed>");
+    //         String req = "GET /" + strs[1].trim() + " HTTP/" + version;
+    //         transportLayer.send(req.getBytes());
+    //         try{
+    //             byte[] byteArray = transportLayer.receive();
+    //             String received = new String(byteArray);
+    //             String str = processResponse(received);
+    //             strs[1] = str;
+    //             String randomname = "";
+    //             for(String s : strs) {
+    //                 randomname = randomname + s;
+    //             }
+    //             return randomname;
+    //         } catch(Exception e) {return null;}
+    //     }
         // String[] stuff = res.split("<text>|</text>");
         // if(stuff[0].contains("404 Not Found")) return "FILE NOT FOUND";
         // if(stuff.length < 2) return res;
@@ -203,15 +225,15 @@ public class ClientApp
         //return "d";
     }
 
-    private static Boolean sendGet(String req){
-        HTTP message = new HTTP(version);
-        message.set_get(req);
-        byte[] byteArray = message.toString().getBytes();
-        if(!transportLayer.send(byteArray)) {
-            System.out.println("Could not send message");
-            return false;
-        }
-        return true;
-    }
+    // private static Boolean sendGet(String req){
+    //     HTTP message = new HTTP(version);
+    //     message.set_get(req);
+    //     byte[] byteArray = message.toString().getBytes();
+    //     if(!transportLayer.send(byteArray)) {
+    //         System.out.println("Could not send message");
+    //         return false;
+    //     }
+    //     return true;
+    // }
 
 }

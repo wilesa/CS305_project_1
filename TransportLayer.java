@@ -16,6 +16,13 @@ public class TransportLayer
         this.server = server;
     }
 
+    public TransportLayer(boolean server, String version, int prop, int trans)
+    {
+        networkLayer = new NetworkLayer(server, prop, trans);
+        this.version = version;
+        this.server = server;
+    }
+
     public boolean send(byte[] payload)
     {
         if((!this.connected || this.version.equals("1.0")) && !this.server) {

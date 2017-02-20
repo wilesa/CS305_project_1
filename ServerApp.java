@@ -24,8 +24,18 @@ public class ServerApp
         // System.out.println(httpstring);
         // HTTP newHttp = new HTTP(httpstring.getBytes());
         // System.out.println(newHttp.toString());
+
+
         //create a new transport layer for server (hence true) (wait for client)
-        TransportLayer transportLayer = new TransportLayer(true, "1.1");
+        TransportLayer transportLayer;
+        try{
+            int prop = Integer.parseInt(args[0]);
+            int trans = Integer.parseInt(args[1]);
+            transportLayer = new TransportLayer(true, "1.1", prop, trans);
+        }
+        catch(Exception e) {
+            transportLayer = new TransportLayer(true, "1.1");
+        }
         while( true ) {
             try {
                 //receive message from client, and send the "received" message back.
@@ -34,7 +44,7 @@ public class ServerApp
                 if(byteArray==null)
                     break;
 
-                String temp = new String ( byteArray );
+                // String temp = new String ( byteArray );
                 // System.out.println("recieved: " +  temp );
 
                 HTTP req = new HTTP(byteArray);
@@ -55,6 +65,8 @@ public class ServerApp
         }
     }
 
+
+    //This method generates an http response based on the http request
     private static HTTP makeResponse(HTTP req) {
         HTTP response = new HTTP("1.1");
         response.set_not_found();
@@ -65,31 +77,30 @@ public class ServerApp
             return response;
         } 
 
-        else if(req.isIfModified()){
-            
-            response.set_not_modified();
-            return response;
+        if(req.isIfModified()){
+            if(!hasBeenModified(req.getLastModified(), req.getFileName())) {
+                response.set_not_modified();
+                return response; 
+            }
         }
 
+        String name = req.getFileName();
+        // System.out.println("FILE NAME: " + name);
+        if(name == null) {
+            response.set_not_found();
+            return response;
+        }
+        String file = getFile(name);
+        // System.out.println("FILE CONTENTS: " + file);
+        if(file == null) {
+            response.set_not_found();
+            return response;
+        }
         else{
-            String name = req.getFileName();
-            // System.out.println("FILE NAME: " + name);
-            if(name == null) {
-                response.set_not_found();
-                return response;
-            }
-            String file = getFile(name);
-            // System.out.println("FILE CONTENTS: " + file);
-            if(file == null) {
-                response.set_not_found();
-                return response;
-            }
-            else{
-                // System.out.println("file found!");
-                response.set_ok();
-                response.set_content(file);
-                return response;
-            }
+            // System.out.println("file found!");
+            response.set_ok();
+            response.set_content(file);
+            return response;
         }
 
         // switch(req[0].trim()) {
