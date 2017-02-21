@@ -21,6 +21,7 @@ public class Server {
     public Server(Boolean autoEmbed, int prop, int trans){
         this.transportLayer = new TransportLayer(true, "1.1", prop, trans);
         this.autoEmbed = autoEmbed;
+        
     }
 
     public void run() throws Exception {
@@ -129,6 +130,8 @@ public class Server {
         // }
     }
 
+    
+
 
     private String getFile(String filename) {
         try{
@@ -157,5 +160,6 @@ public class Server {
         }
 
     }
+
 }
 

@@ -63,6 +63,7 @@ public class TransportLayer
                     this.connected = true;
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 System.out.println("Terminated");
                 return null;
             }
@@ -81,4 +82,5 @@ public class TransportLayer
             return null;
         }
     }
+
 }

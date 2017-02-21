@@ -1,4 +1,6 @@
 @echo off
+javac PhysicalLayer.java
+javac LinkLayer.java
 javac NetworkLayer.java
 javac TransportLayer.java
 javac ClientApp.java

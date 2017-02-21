@@ -20,7 +20,7 @@ public class PhysicalLayer
     //stream to read in data from socket
     InputStream inputStream;
 
-    public PhysicalLayer(boolean server)
+    public PhysicalLayer(boolean server) 
     {
         //if this is a server
         if(server)
@@ -40,32 +40,40 @@ public class PhysicalLayer
         }
         else
         {
-            try
-            {
+            try {
                 //create socket
                 senderSocket = new Socket("localhost", LISTENING_PORT);
                 //create an outputstream for writing data
                 socketOut = new DataOutputStream(senderSocket.getOutputStream());
                 //create an inputstream for reading data
                 inputStream = senderSocket.getInputStream();
-
             } catch (IOException e) {
                 //will run if server was not listening
                 System.out.println("Cannot Connect to server");
-                System.exit(1); }
+                System.exit(1); 
             }
-
         }
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() { 
+                try{
+                    System.out.println("SHUTTING DOWN");
+                    close();
+                } catch (IOException e) {e.printStackTrace();}
+            }
+        });
+
+    }
 
 
-        public void send(byte[] payload)
-        {
+    public void send(byte[] payload)
+    {
         try
         {
             //send bytes out to socket
             socketOut.write(payload);
         }
         catch(Exception ex){}
+        
     }
 
     //read bytes from socket
@@ -85,5 +93,12 @@ public class PhysicalLayer
         } catch (IOException e) {}
 
         return bytesRecieved;
+    }
+    private void close() throws IOException{
+        if(this.serverSocket != null) this.serverSocket.close();
+        if(this.connectionSocket != null) this.connectionSocket.close();
+        if(this.inputStream != null) this.inputStream.close();
+        if(this.senderSocket != null) this.senderSocket.close();
+        if(this.socketOut != null) this.socketOut.close();
     }
 }
