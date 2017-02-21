@@ -29,42 +29,44 @@ public class ServerApp
 
 
         //create a new transport layer for server (hence true) (wait for client)
-        TransportLayer transportLayer;
-        try{
-            int prop = Integer.parseInt(args[0]);
-            int trans = Integer.parseInt(args[1]);
-            transportLayer = new TransportLayer(true, "1.1", prop, trans);
-        }
-        catch(Exception e) {
-            transportLayer = new TransportLayer(true, "1.1");
-        }
-        while( true ) {
-            try {
-                //receive message from client, and send the "received" message back.
-                byte[] byteArray = transportLayer.receive();
-                //if client disconnected
-                if(byteArray==null)
-                    break;
+        // TransportLayer transportLayer;
+        // try{
+        //     int prop = Integer.parseInt(args[0]);
+        //     int trans = Integer.parseInt(args[1]);
+        //     transportLayer = new TransportLayer(true, "1.1", prop, trans);
+        // }
+        // catch(Exception e) {
+        //     transportLayer = new TransportLayer(true, "1.1");
+        // }
+        // while( true ) {
+        //     try {
+        //         //receive message from client, and send the "received" message back.
+        //         byte[] byteArray = transportLayer.receive();
+        //         //if client disconnected
+        //         if(byteArray==null)
+        //             break;
 
-                // String temp = new String ( byteArray );
-                // System.out.println("recieved: " +  temp );
+        //         // String temp = new String ( byteArray );
+        //         // System.out.println("recieved: " +  temp );
 
-                HTTP req = new HTTP(byteArray);
-                // System.out.println("made http");
-                // if(req.toString() == null) System.out.println("failed to convert to string");
-                // else System.out.println( "http to string: " + req.toString() );
-                HTTP res = makeResponse(req);
+        //         HTTP req = new HTTP(byteArray);
+        //         // System.out.println("made http");
+        //         // if(req.toString() == null) System.out.println("failed to convert to string");
+        //         // else System.out.println( "http to string: " + req.toString() );
+        //         HTTP res = makeResponse(req);
                 
-                String tempRes = res.toString();
-                if(tempRes == null) {
-                    System.out.println("Response is null?");
-                    continue;
-                }
-                transportLayer.send( tempRes.getBytes() );
-            } catch(Exception e) {
-                continue;
-            }
-        }
+        //         String tempRes = res.toString();
+        //         if(tempRes == null) {
+        //             System.out.println("Response is null?");
+        //             continue;
+        //         }
+        //         transportLayer.send( tempRes.getBytes() );
+        //     } catch(Exception e) {
+        //         continue;
+        //     }
+        // }
+        Server server = new Server(true, 0, 0);
+        server.run();
     }
 
 

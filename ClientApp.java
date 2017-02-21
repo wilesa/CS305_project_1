@@ -24,60 +24,62 @@ public class ClientApp
     private static Boolean useCache = false; 
 
     public static void main(String[] args) throws Exception {
-        try {
-            version = args[0];
-        } catch (Exception e) {version = "1.1";}
-        //create a new transport layer for client (hence false) (connect to server), and read in first line from keyboard
-        transportLayer = new TransportLayer(false, version);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        String line = reader.readLine();
+        // try {
+        //     version = args[0];
+        // } catch (Exception e) {version = "1.1";}
+        // //create a new transport layer for client (hence false) (connect to server), and read in first line from keyboard
+        // transportLayer = new TransportLayer(false, version);
+        // BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        // String line = reader.readLine();
 
-        try{
-            if(useCache){
-                File cache = new File("cache");
-                if(!cache.exists())
-                    cache.mkdir();
-            }
-        }
-        catch(Exception e){
-            System.out.println("Failed to initialize cache");
-        }
+        // try{
+        //     if(useCache){
+        //         File cache = new File("cache");
+        //         if(!cache.exists())
+        //             cache.mkdir();
+        //     }
+        // }
+        // catch(Exception e){
+        //     System.out.println("Failed to initialize cache");
+        // }
 
-        //while line is not empty
-        while( line != null && !line.equals("") )
-        {
-            //convert lines into byte array, send to transoport layer and wait for response
-            // System.out.printf("%ta, %<te %<tb %<tY %<tT", new Date());
-            // File inCache = new File("cache/" + line);
-            // if(inCache.exists()){
+        // //while line is not empty
+        // while( line != null && !line.equals("") )
+        // {
+        //     //convert lines into byte array, send to transoport layer and wait for response
+        //     // System.out.printf("%ta, %<te %<tb %<tY %<tT", new Date());
+        //     // File inCache = new File("cache/" + line);
+        //     // if(inCache.exists()){
 
-            // }
+        //     // }
 
-            // else{
-                // inCache.createNewFile();
-                // String req = "GET /" + line + " HTTP/" + version;
+        //     // else{
+        //         // inCache.createNewFile();
+        //         // String req = "GET /" + line + " HTTP/" + version;
 
-                // sendGet(line);
-                // byte[] byteArray = transportLayer.receive();
-                // String str = new String ( byteArray );
-                // System.out.println( "Received: " + str );
-                // System.out.println("******** \n");
-                Calendar calendar = Calendar.getInstance();
-                Long before = calendar.getTimeInMillis();
-                String tml = processRequest(line);
-                Calendar after = Calendar.getInstance();
-                Long diff = after.getTimeInMillis() - before;
-                System.out.println("Time in ms: " + diff);
-                System.out.println(tml);
-                // String[] strs = str.split("<text>|</text>");
-                // String text;
-                // if(strs.length > 1) text = processResponse(strs[1]);
-            // }
+        //         // sendGet(line);
+        //         // byte[] byteArray = transportLayer.receive();
+        //         // String str = new String ( byteArray );
+        //         // System.out.println( "Received: " + str );
+        //         // System.out.println("******** \n");
+        //         Calendar calendar = Calendar.getInstance();
+        //         Long before = calendar.getTimeInMillis();
+        //         String tml = processRequest(line);
+        //         Calendar after = Calendar.getInstance();
+        //         Long diff = after.getTimeInMillis() - before;
+        //         System.out.println("Time in ms: " + diff);
+        //         System.out.println(tml);
+        //         // String[] strs = str.split("<text>|</text>");
+        //         // String text;
+        //         // if(strs.length > 1) text = processResponse(strs[1]);
+        //     // }
 
-            //read next line
-            line = reader.readLine();
+        //     //read next line
+        //     line = reader.readLine();
 
-        }
+        // }
+        Client c = new Client(true, "1.1");
+        c.run();
     }
 
     //This method generates a GET http call with the user's unput.
