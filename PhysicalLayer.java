@@ -53,14 +53,6 @@ public class PhysicalLayer
                 System.exit(1); 
             }
         }
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() { 
-                try{
-                    System.out.println("SHUTTING DOWN");
-                    close();
-                } catch (IOException e) {e.printStackTrace();}
-            }
-        });
 
     }
 
@@ -93,12 +85,5 @@ public class PhysicalLayer
         } catch (IOException e) {}
 
         return bytesRecieved;
-    }
-    private void close() throws IOException{
-        if(this.serverSocket != null) this.serverSocket.close();
-        if(this.connectionSocket != null) this.connectionSocket.close();
-        if(this.inputStream != null) this.inputStream.close();
-        if(this.senderSocket != null) this.senderSocket.close();
-        if(this.socketOut != null) this.socketOut.close();
     }
 }

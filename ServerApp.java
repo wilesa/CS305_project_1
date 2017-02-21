@@ -67,10 +67,6 @@ public class ServerApp
         // }
         Server server1 = new Server(true, 0, 0);
         server1.run();
-        System.out.println("SLEEP");
-        Thread.sleep(1000);
-        Server server2 = new Server(true, 0, 0);
-        server2.run();
     }
 
 
