@@ -79,7 +79,7 @@ public class Server {
             return response;
         }
 
-        if(autoEmbed && file.contains("<embed>")){
+        if(this.autoEmbed && file.contains("<embed>")){
             HTTP embed = new HTTP("1.1");
             String[] strs = file.split("<embed>|</embed>");
             if(req.isIfModified() && !hasBeenModified(req.getLastModified(), req.getFileName()))

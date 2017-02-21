@@ -78,8 +78,13 @@ public class ClientApp
         //     line = reader.readLine();
 
         // }
-        Client c = new Client(true, "1.1");
-        c.run();
+        try {
+            Client c = new Client(false, args[0]);
+            c.run();
+        } catch (Exception e) {
+            Client c = new Client(false, "1.1");
+            c.run();
+        }
     }
 
     //This method generates a GET http call with the user's unput.

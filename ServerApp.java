@@ -65,8 +65,18 @@ public class ServerApp
         //         continue;
         //     }
         // }
-        Server server1 = new Server(true, 0, 0);
-        server1.run();
+
+        try{
+            int prop = Integer.parseInt(args[0]);
+            int trans = Integer.parseInt(args[1]);
+            Server server1 = new Server(false, prop, trans);
+            server1.run();
+        }
+        catch(Exception e) {
+            Server server1 = new Server(false, 0, 0);
+            server1.run();
+        }
+        
     }
 
 
