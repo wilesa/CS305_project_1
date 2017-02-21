@@ -29,6 +29,12 @@ public class Client
         this.transportLayer = new TransportLayer(false, version);
     }
 
+    //Main method for the class
+    //Waits for user to input a requested file, then sends it to the processRequest method
+    //Once file is sent to server, waits for return
+    //Prints compleate recieved page, or error message
+    //Prints the time it took to get response
+
     public void run() throws Exception {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         String line = reader.readLine();
@@ -47,35 +53,19 @@ public class Client
         //while line is not empty
         while( line != null && !line.equals("") )
         {
-            //convert lines into byte array, send to transoport layer and wait for response
-            // System.out.printf("%ta, %<te %<tb %<tY %<tT", new Date());
-            // File inCache = new File("cache/" + line);
-            // if(inCache.exists()){
+            //Save the time when the request is received.
+            Calendar calendar = Calendar.getInstance();
+            Long before = calendar.getTimeInMillis();
 
-            // }
+            //Send request to be processed
+            String tml = processRequest(line);
 
-            // else{
-                // inCache.createNewFile();
-                // String req = "GET /" + line + " HTTP/" + version;
+            //Compare time with time request arrived, and print result
+            Calendar after = Calendar.getInstance();
+            Long diff = after.getTimeInMillis() - before;
+            System.out.println("Time in ms: " + diff);
+            System.out.println(tml);
 
-                // sendGet(line);
-                // byte[] byteArray = transportLayer.receive();
-                // String str = new String ( byteArray );
-                // System.out.println( "Received: " + str );
-                // System.out.println("******** \n");
-                Calendar calendar = Calendar.getInstance();
-                Long before = calendar.getTimeInMillis();
-                String tml = processRequest(line);
-                Calendar after = Calendar.getInstance();
-                Long diff = after.getTimeInMillis() - before;
-                System.out.println("Time in ms: " + diff);
-                System.out.println(tml);
-                // String[] strs = str.split("<text>|</text>");
-                // String text;
-                // if(strs.length > 1) text = processResponse(strs[1]);
-            // }
-
-            //read next line
             line = reader.readLine();
 
         }
@@ -118,43 +108,62 @@ public class Client
     //It will remove all <text> and <embed> tags
     //Also will send a request for embeded files if they exist
     private String processTML(String tml) {
+        //remove <text> wrappers
         if(tml.contains("<text>")){
             String[] temp;
             temp = tml.split("<text>|</text>");
             tml = temp[1];
         }
 
+        //If no embedded files, done
         if(!tml.contains("<embed>")) return tml;
 
+        //remove all <embed> wrappers
         String[] strs = tml.split("<embed>|</embed>");
         try{
+            //for each split, check if it is an embedded file
+            //If not, continue
             for(int i = 0; i < strs.length; i++){
+                //too short to contain src= and a path, can't be embedded file
                 if(strs[i].length() < 4) continue;
+                //Doesn't start with src=, not embedded file
                 if(!strs[i].substring(0, 4).equals("src=")) continue;
                 String str = processRequest(strs[i].substring(4).trim());
                 strs[i] = str;
             }
+            //rebuild split string
             String randomname = "";
             for(String s : strs) {
                 randomname = randomname + s;
             }
+            //return rebuilt string
             return randomname;
-        } catch(Exception e) {e.printStackTrace();return null;}
+        } 
+        //if Exception, print error message and return null
+        catch(Exception e) {e.printStackTrace();return null;}
     }
 
+    //Generates a string with the date and time in http format
+    //Takes a string file name, and gets is last modified date
+    //Converts date to string
+    //Returns -1 if file doesnt exist, or exception thrown
     private String makeDate(String req){
-        //TO DO: actually format the date
         try{
+            //Get file last modified time in millis
             long time = Files.getLastModifiedTime(Paths.get(req)).toMillis();
             Calendar calendar = Calendar.getInstance();
+            //turn file last modified time to calender
             calendar.setTimeInMillis(time);
             SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
             dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+            //convert calender to formatted string
             return dateFormat.format(calendar.getTime());    
         }
         catch(Exception e) {return "-1";}
     }
 
+    //Gets the text body from a file given the file name
+    //Returns null if file does not exist
     private String getFile(String filename) {
         try{
             return new String(Files.readAllBytes(Paths.get(filename)), StandardCharsets.UTF_8); 
@@ -164,8 +173,13 @@ public class Client
         }
     }
 
+    //Writes given text to a file with the given name
+    //If a file with given name does not exist, creates one
+    //If file does exist, will overwrite any text in file
+    //Returns true if successful, false if exception thrown
     private Boolean writeFile(String filename, String text) {
         try{
+            //If files doesn't exist, create one
             if(!Files.exists(Paths.get(filename)))
                 Files.createFile(Paths.get(filename));
             byte[] byteArray = text.getBytes();

@@ -7,6 +7,8 @@ public class HTTP {
     private String content;
     private String version;
 
+    //Contructor for HTTP class with given version
+    //No status, headers, or content
     public HTTP(String version) {
         this.start_line = null;
         this.headers = new ArrayList<>();
@@ -14,13 +16,12 @@ public class HTTP {
         this.version = version;
     }
 
+    //Parses given byte[], and contructs an HTTP object from that array
+    //Will add the satus, and headers and body if they exist
     public HTTP(byte[] httpArray) {
         this.headers = new ArrayList<>();
         String httpString = new String(httpArray);
         String lines[] = httpString.split("\r?\n");
-
-        // for(int i=0; i<lines.length;i++)
-        //     System.out.println("Line " + i  + " in lines: " + lines[i]);
 
         if(lines[0].contains("HTTP/1.0")) this.version = "1.0";
         else if(lines[0].contains("HTTP/1.1")) this.version = "1.1";
@@ -72,12 +73,8 @@ public class HTTP {
         this.headers.add("If-Modified-Since: " + date);
     }
 
-    
-
     public void set_content(String content){
-        this.content = content;                // String req = new String ( byteArray );
-                // System.out.println( req );
-                // String res = makeResponse(req.split("/|HTTP/"));
+        this.content = content;
     }
 
     public String getFileName(){
@@ -86,6 +83,8 @@ public class HTTP {
         return temp[1].trim();
     }
 
+    //If this object has the if-modified-since header, returns time in header 
+    //If no headers exist, or not the if-mod-since header, returns 0
     public String getLastModified(){
         if(get_headers().isEmpty()) return "0";
         String head = get_headers().get(0);
@@ -107,7 +106,7 @@ public class HTTP {
     public ArrayList<String> get_headers(){return this.headers;}
     public String get_content(){return this.content;}
 
-
+    //Returns a string with the HTTP object as a correctly formatted http packet
     public String toString(){
         try{
             if(this.start_line == null) return null;
@@ -125,7 +124,8 @@ public class HTTP {
     }
 
     
-
+    //Parses through input string
+    //Sets status, body, and headers to match those in the given string
     public static HTTP fromString(String httpString) {
         HTTP http;
         String lines[] = httpString.split("\\r?\\n");

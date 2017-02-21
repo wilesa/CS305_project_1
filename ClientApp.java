@@ -87,101 +87,101 @@ public class ClientApp
         }
     }
 
-    //This method generates a GET http call with the user's unput.
-    //If caching is on, this method will send a time modified with GET request
-    //Also will write received tml to a file in the cache
-    private static String processRequest(String req) {
-        HTTP message = new HTTP(version);
-        message.set_get(req);
-        if(useCache && Files.exists(Paths.get("cache/" + req))) {
-            message.set_if_modified(makeDate("cache/" + req));
-        }
+    // //This method generates a GET http call with the user's unput.
+    // //If caching is on, this method will send a time modified with GET request
+    // //Also will write received tml to a file in the cache
+    // private static String processRequest(String req) {
+    //     HTTP message = new HTTP(version);
+    //     message.set_get(req);
+    //     if(useCache && Files.exists(Paths.get("cache/" + req))) {
+    //         message.set_if_modified(makeDate("cache/" + req));
+    //     }
 
-        byte[] byteArray = message.toString().getBytes();
-        if(!transportLayer.send(byteArray)) {
-            System.out.println("Could not send message");
-            return "Could not send message";
-        }
+    //     byte[] byteArray = message.toString().getBytes();
+    //     if(!transportLayer.send(byteArray)) {
+    //         System.out.println("Could not send message");
+    //         return "Could not send message";
+    //     }
 
-        byteArray = transportLayer.receive();
-        HTTP response = new HTTP(byteArray);
-        //If 404
-        if(response.isNotFound()) return "FILE NOT FOUND";
-        //If 304
-        else if(response.isNotModified()) return processTML(getFile("cache/" + req));
-        //If something else, but doesn't contain a body
-        else if(!response.hasContent()) return response.get_status();
-        //if contains a body, write to cache if cache is enabled
-        else {
-            if(useCache) writeFile("cache/" + req, response.get_content());
-            // System.out.println("response: " +response.get_content());
-            return processTML(response.get_content());
-        }
-    }
+    //     byteArray = transportLayer.receive();
+    //     HTTP response = new HTTP(byteArray);
+    //     //If 404
+    //     if(response.isNotFound()) return "FILE NOT FOUND";
+    //     //If 304
+    //     else if(response.isNotModified()) return processTML(getFile("cache/" + req));
+    //     //If something else, but doesn't contain a body
+    //     else if(!response.hasContent()) return response.get_status();
+    //     //if contains a body, write to cache if cache is enabled
+    //     else {
+    //         if(useCache) writeFile("cache/" + req, response.get_content());
+    //         // System.out.println("response: " +response.get_content());
+    //         return processTML(response.get_content());
+    //     }
+    // }
 
 
-    //This method handles a tml data packet.
-    //It will remove all <text> and <embed> tags
-    //Also will send a request for embeded files if they exist
-    private static String processTML(String tml) {
-        if(tml.contains("<text>")){
-            String[] temp;
-            temp = tml.split("<text>|</text>");
-            tml = temp[1];
-        }
+    // //This method handles a tml data packet.
+    // //It will remove all <text> and <embed> tags
+    // //Also will send a request for embeded files if they exist
+    // private static String processTML(String tml) {
+    //     if(tml.contains("<text>")){
+    //         String[] temp;
+    //         temp = tml.split("<text>|</text>");
+    //         tml = temp[1];
+    //     }
 
-        if(!tml.contains("<embed>")) return tml;
+    //     if(!tml.contains("<embed>")) return tml;
 
-        String[] strs = tml.split("<embed>|</embed>");
-        try{
-            for(int i = 0; i < strs.length; i++){
-                if(strs[i].length() < 4) continue;
-                if(!strs[i].substring(0, 4).equals("src=")) continue;
-                String str = processRequest(strs[i].substring(4).trim());
-                strs[i] = str;
-            }
-            String randomname = "";
-            for(String s : strs) {
-                randomname = randomname + s;
-            }
-            return randomname;
-        } catch(Exception e) {e.printStackTrace();return null;}
-    }
+    //     String[] strs = tml.split("<embed>|</embed>");
+    //     try{
+    //         for(int i = 0; i < strs.length; i++){
+    //             if(strs[i].length() < 4) continue;
+    //             if(!strs[i].substring(0, 4).equals("src=")) continue;
+    //             String str = processRequest(strs[i].substring(4).trim());
+    //             strs[i] = str;
+    //         }
+    //         String randomname = "";
+    //         for(String s : strs) {
+    //             randomname = randomname + s;
+    //         }
+    //         return randomname;
+    //     } catch(Exception e) {e.printStackTrace();return null;}
+    // }
 
-    private static String makeDate(String req){
-        //TO DO: actually format the date
-        try{
-            long time = Files.getLastModifiedTime(Paths.get(req)).toMillis();
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(time);
-            SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
-            dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-            return dateFormat.format(calendar.getTime());    
-        }
-        catch(Exception e) {return "-1";}
-    }
+    // private static String makeDate(String req){
+    //     //TO DO: actually format the date
+    //     try{
+    //         long time = Files.getLastModifiedTime(Paths.get(req)).toMillis();
+    //         Calendar calendar = Calendar.getInstance();
+    //         calendar.setTimeInMillis(time);
+    //         SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+    //         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+    //         return dateFormat.format(calendar.getTime());    
+    //     }
+    //     catch(Exception e) {return "-1";}
+    // }
 
-    private static String getFile(String filename) {
-        try{
-            return new String(Files.readAllBytes(Paths.get(filename)), StandardCharsets.UTF_8); 
-        } catch(Exception e) {
-            System.out.println("Requested file does not exist");
-            return null;
-        }
-    }
+    // private static String getFile(String filename) {
+    //     try{
+    //         return new String(Files.readAllBytes(Paths.get(filename)), StandardCharsets.UTF_8); 
+    //     } catch(Exception e) {
+    //         System.out.println("Requested file does not exist");
+    //         return null;
+    //     }
+    // }
 
-    private static Boolean writeFile(String filename, String text) {
-        try{
-            if(!Files.exists(Paths.get(filename)))
-                Files.createFile(Paths.get(filename));
-            byte[] byteArray = text.getBytes();
-            Files.write(Paths.get(filename), byteArray);
-            return true;
-        } catch(Exception e) {
-            System.out.println("Failed to write");
-            return false;
-        }
-    }
+    // private static Boolean writeFile(String filename, String text) {
+    //     try{
+    //         if(!Files.exists(Paths.get(filename)))
+    //             Files.createFile(Paths.get(filename));
+    //         byte[] byteArray = text.getBytes();
+    //         Files.write(Paths.get(filename), byteArray);
+    //         return true;
+    //     } catch(Exception e) {
+    //         System.out.println("Failed to write");
+    //         return false;
+    //     }
+    // }
 
 
 
