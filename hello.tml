@@ -2,6 +2,7 @@
 this is changed text.
 this is text with <embed>src=embeddedtext.tml</embed>
 this works.
+<embed>src=more.tml</embed>
 <embed>src=moreembeddedstuff.tml</embed>
 <embed>src=embeddedtext.tml</embed>
 HAHAHAHA

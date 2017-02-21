@@ -42,11 +42,11 @@ public class Server {
                 // else System.out.println( "http to string: " + req.toString() );
                 HTTP res = makeResponse(req);
                 
-                String tempRes = res.toString();
-                if(tempRes == null) {
+                if(res == null) {
                     System.out.println("Response is null?");
                     continue;
                 }
+                String tempRes = res.toString();
                 transportLayer.send( tempRes.getBytes() );
             } catch(Exception e) {
                 continue;
@@ -82,27 +82,57 @@ public class Server {
         if(this.autoEmbed && file.contains("<embed>")){
             HTTP embed = new HTTP("1.1");
             String[] strs = file.split("<embed>|</embed>");
-            if(req.isIfModified() && !hasBeenModified(req.getLastModified(), req.getFileName()))
-                 embed.set_if_modified(req.getLastModified());
+
+            Boolean inCache = false;
+
+            if(req.isIfModified() && !hasBeenModified(req.getLastModified(), req.getFileName())){
+                embed.set_if_modified(req.getLastModified());
+                inCache = true;
+            }
+
+            Boolean failed = false;
+
             try{
                 for(int i = 0; i < strs.length; i++){
                     if(strs[i].length() < 4) continue;
                     if(!strs[i].substring(0, 4).equals("src=")) continue;
                     embed.set_get(strs[i].substring(4).trim());
                     HTTP next = makeResponse(embed);
+                    //An embedded file was modified
+                    // if(next == null) {
+                    //     inCache = false;
+                    //     break;
+                    // }
+                    //This means this embedded file has changed, but not its parent
+                    //Unsure of state of other files embedded in same parent
+                    //Need to abort attempt to auto embed from parent
+                    if(embed.isIfModified() && next.isOk()) break; 
+
+                    //Return 404 is status is 404
                     if(next.isNotFound()) return next;
-                    if(next.isNotModified()) return next;
+
+                    if(next.isNotModified()) continue;
 
                     //rebuild message after split
+                    //Only will hit this point if not checking if-modified-since
+                    //Only does sonething if building an OK response with body
                     String[] temp = next.get_content().split("<text>|</text>");
                     strs[i] = temp[1];
                 }
-                String out = "";
-                for(String s : strs) {
-                    out = out + s;
+
+                if(!inCache){
+                    String out = "";
+                    for(String s : strs) {
+                        out = out + s;
+                    }
+                    file = out;
                 }
-                file = out;
-            } catch(Exception e) {e.printStackTrace(); return null;}
+            } 
+            catch(Exception e) {
+                e.printStackTrace(); 
+                response.set_not_found();
+                return response;
+            }
         }
 
         else if(req.isIfModified()){
