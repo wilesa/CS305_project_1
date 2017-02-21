@@ -1,5 +1,8 @@
 <text>
 this is changed text.
-this is text with <embed>embeddedtext.tml</embed>
+this is text with <embed>src=embeddedtext.tml</embed>
 this works.
+<embed>src=moreembeddedstuff.tml</embed>
+<embed>src=embeddedtext.tml</embed>
+HAHAHAHA
 </text>

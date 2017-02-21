@@ -21,7 +21,7 @@ public class ClientApp
 
 
     //Change this boolean to use or not use the cache
-    private static Boolean useCache = true; 
+    private static Boolean useCache = false; 
 
     public static void main(String[] args) throws Exception {
         try {
@@ -107,6 +107,7 @@ public class ClientApp
         //if contains a body, write to cache if cache is enabled
         else {
             if(useCache) writeFile("cache/" + req, response.get_content());
+            // System.out.println("response: " +response.get_content());
             return processTML(response.get_content());
         }
     }
@@ -126,15 +127,18 @@ public class ClientApp
 
         String[] strs = tml.split("<embed>|</embed>");
         try{
-            String str = processRequest(strs[1].trim());
-            //rebuild message after split
-            strs[1] = str;
+            for(int i = 0; i < strs.length; i++){
+                if(strs[i].length() < 4) continue;
+                if(!strs[i].substring(0, 4).equals("src=")) continue;
+                String str = processRequest(strs[i].substring(4).trim());
+                strs[i] = str;
+            }
             String randomname = "";
             for(String s : strs) {
                 randomname = randomname + s;
             }
             return randomname;
-        } catch(Exception e) {return null;}
+        } catch(Exception e) {e.printStackTrace();return null;}
     }
 
     private static String makeDate(String req){

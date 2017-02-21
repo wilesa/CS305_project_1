@@ -26,12 +26,12 @@ public class TransportLayer
     public boolean send(byte[] payload)
     {
         if((!this.connected || this.version.equals("1.0")) && !this.server) {
-            System.out.println("(Transport Layer) Sending SYN");
+            //System.out.println("(Transport Layer) Sending SYN");
             networkLayer.send(syn);
             try {
                 byte[] pl = networkLayer.receive();
                 String res = new String(pl);
-                System.out.println("(Transport Layer) Received: " + res);
+                //System.out.println("(Transport Layer) Received: " + res);
                 if(res.equals("ACK")) {
                     this.connected = true;
                 }
@@ -44,7 +44,7 @@ public class TransportLayer
         }
 
         String str = new String(payload);
-        System.out.println("(Transport Layer) Sending: " + str);
+        //System.out.println("(Transport Layer) Sending: " + str);
         networkLayer.send( payload );
         if(this.version.equals("1.0") && this.server) this.connected = false;
         return true;
@@ -56,9 +56,9 @@ public class TransportLayer
             try {
                 byte[] payload = networkLayer.receive();
                 String str = new String(payload);
-                System.out.println("(Transport Layer) Received " + str);
+                //System.out.println("(Transport Layer) Received " + str);
                 if(str.equals("SYN")){
-                    System.out.println("(Transport Layer) Sending ACK");
+                    //System.out.println("(Transport Layer) Sending ACK");
                     networkLayer.send(ack);
                     this.connected = true;
                 }
@@ -74,6 +74,7 @@ public class TransportLayer
             str = new String(payload);
             if(str.contains("HTTP/1.0")) this.connected = false;
             if(this.version.equals("1.0") && !this.server) this.connected = false;
+            //System.out.println(str);
             return payload;
         } catch(Exception e) {
             this.connected = false;
