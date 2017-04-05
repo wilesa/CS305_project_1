@@ -20,6 +20,8 @@ public class Packet
         this.acknum=acknum;
         this.checksum=checksum;
         this.ran=new Random();
+
+        setChecksum();
     }
 
     public int getAcknum()
@@ -39,6 +41,17 @@ public class Packet
     
     public void setChecksum()
     {
+        byte[] chars  = msg.getMessage().getBytes();
+
+        int temp = 0;
+        for(int i=0;i<chars.length;i++)
+        {
+            temp = temp + (int)chars[i];
+        }
+
+        checksum = temp + seqnum + acknum;
+
+        System.out.println("Message: " + msg.getMessage() + " Checksum: " + checksum);
     }
     
     public boolean isCorrupt()
