@@ -9,7 +9,10 @@ public class SenderTransport
     private Timeline tl;
     private int n;
     private boolean usingTCP;
-
+	private int seq;
+	private ArrayList<Packet> window;
+	
+	
     public SenderTransport(NetworkLayer nl){
         this.nl=nl;
         initialize();
@@ -18,12 +21,17 @@ public class SenderTransport
 
     public void initialize()
     {
+		seq = 0;
+		window = new ArrayList<Packet>();
     }
 
     public void sendMessage(Message msg)
     {
-        Packet p = new Packet(msg, 0, 0, 0);
-        nl.sendPacket(p, 1); //Message arriving from sender to receiver
+		while(window.size() > n){
+			Packet p = new Packet(msg, seq++, 0, 0);
+			nl.sendPacket(p, 1); //Message arriving from sender to receiver
+		}
+        
         //nl.sendPacket(p, 0); //Message Arriving from receiver to sender
     }
 
