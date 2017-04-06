@@ -20,6 +20,8 @@ public class ReceiverTransport
 
     public void receiveMessage(Packet pkt)
     {
+        
+        System.out.println("Receiver received: " + pkt.getMessage().getMessage());
     }
 
     public void setProtocol(int n)

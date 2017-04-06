@@ -22,6 +22,9 @@ public class SenderTransport
 
     public void sendMessage(Message msg)
     {
+        Packet p = new Packet(msg, 0, 0, 0);
+        nl.sendPacket(p, 1); //Message arriving from sender to receiver
+        //nl.sendPacket(p, 0); //Message Arriving from receiver to sender
     }
 
     public void receiveMessage(Packet pkt)
