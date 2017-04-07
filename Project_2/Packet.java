@@ -51,7 +51,7 @@ public class Packet
 
         checksum = temp + seqnum + acknum;
 
-        System.out.println("Message: " + msg.getMessage() + " Checksum: " + checksum);
+        // System.out.println("Message: " + msg.getMessage() + " Checksum: " + checksum);
     }
     
     public boolean isCorrupt()

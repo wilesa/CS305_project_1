@@ -11,6 +11,7 @@ public class SenderTransport
     private boolean usingTCP;
 	private int seq;
 	private ArrayList<Packet> window;
+    private Message queue;
 	
 	
     public SenderTransport(NetworkLayer nl){
@@ -27,16 +28,33 @@ public class SenderTransport
 
     public void sendMessage(Message msg)
     {
-		while(window.size() > n){
+        if(window.size() != n){
 			Packet p = new Packet(msg, seq++, 0, 0);
 			nl.sendPacket(p, 1); //Message arriving from sender to receiver
+            // tl.createSendEvent();
+            window.add(p);
 		}
+        else queue = msg;
         
         //nl.sendPacket(p, 0); //Message Arriving from receiver to sender
     }
 
     public void receiveMessage(Packet pkt)
     {
+        System.out.println("ACK " + pkt.getAcknum() + " recieved");
+        if(!pkt.isCorrupt()){
+            int ack = pkt.getAcknum();
+            for(int i=0;i<window.size();i++){
+                if(window.get(i).getSeqnum() <= ack) {
+                    window.remove(i);
+                    i--;
+                }
+                if(queue != null) {
+                    sendMessage(queue);
+                    queue = null;
+                }
+            }
+        }
     }
 
     public void timerExpired()

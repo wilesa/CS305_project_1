@@ -81,7 +81,7 @@ public class Timeline
         if(NetworkSimulator.DEBUG>2)
         {
             String tmp = (to==Event.SENDER)? "sender" : "receiver";
-            System.out.println("inserting futurre arrive event at " + timeSoFar + " with time: " + lastArrivalTime + "to :" +tmp);
+            System.out.println("inserting futurre arrive event at " + timeSoFar + " with time: " + lastArrivalTime + " to :" +tmp);
         }
         events.add(new Event(lastArrivalTime,Event.MESSAGEARRIVE,to,pkt));
 
