@@ -1,5 +1,6 @@
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 /**
  * A class which represents the receiver transport layer
  */
@@ -11,7 +12,7 @@ public class SenderTransport
     private boolean usingTCP;
 	private int seq;
 	private ArrayList<Packet> window;
-    private Message queue;
+    private LinkedList<Message> queue;
 	
 	
     public SenderTransport(NetworkLayer nl){
@@ -24,6 +25,7 @@ public class SenderTransport
     {
 		seq = 0;
 		window = new ArrayList<Packet>();
+        queue = new LinkedList<Message>();
     }
 
     public void sendMessage(Message msg)
@@ -34,7 +36,7 @@ public class SenderTransport
             // tl.createSendEvent();
             window.add(p);
 		}
-        else queue = msg;
+        else queue.addLast(msg);
         
         //nl.sendPacket(p, 0); //Message Arriving from receiver to sender
     }
@@ -49,9 +51,8 @@ public class SenderTransport
                     window.remove(i);
                     i--;
                 }
-                if(queue != null) {
-                    sendMessage(queue);
-                    queue = null;
+                if(queue.size()!=0) {
+                    sendMessage(queue.pop());
                 }
             }
         }
