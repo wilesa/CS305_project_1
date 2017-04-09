@@ -33,9 +33,9 @@ public class GBN {
             if(window.size() < windowSize){
                 Packet p = new Packet(msg, seq++, 0, 0);
                 System.out.println("[Sender] sending: {Seq: " + p.getSeqnum() +", " + p.getMessage().getMessage() +"}");
-                nl.sendPacket(p, Event.RECEIVER); //Message arriving from sender to receiver
+                nl.sendPacket(p.clone(), Event.RECEIVER); //Message arriving from sender to receiver
 
-                System.out.println("STARTING TIMER");
+                //System.out.println("STARTING TIMER");
                 tl.startTimer(40);
 
                 // tl.createSendEvent();
@@ -56,7 +56,7 @@ public class GBN {
             System.out.println("[Sender] ACK " + pkt.getAcknum() + " recieved");
             if(!pkt.isCorrupt()){
                 int ack = pkt.getAcknum();
-                System.out.println("STOPPING TIMER");
+                //System.out.println("STOPPING TIMER");
                 tl.stopTimer();
                 for(int i=0;i<window.size();i++){
                     if(window.get(i).getSeqnum() <= ack) {
@@ -68,10 +68,12 @@ public class GBN {
                     }
                 }
                 if(window.size()!=0) {
-                    System.out.println("STARTING TIMER");
+                    //System.out.println("STARTING TIMER");
                     tl.startTimer(40);
                 }
 
+            } else {
+                System.out.println("[TX] ACK Corrupt");
             }
         } else if (this.type == Event.RECEIVER) {
 
@@ -83,12 +85,19 @@ public class GBN {
 
     public void gbn_timerExpired(){
         System.out.println("-------------------TIMER EXPIRED GBN-----------------");
-        for(Packet pkt : window) nl.sendPacket(pkt, Event.RECEIVER);
+        for(Packet pkt : window) {
+            System.out.println("[Sender] sending: {Seq: " + pkt.getSeqnum() +", " + pkt.getMessage().getMessage() +"}");
+            tl.startTimer(40);
+
+            nl.sendPacket(pkt.clone(), Event.RECEIVER);
+        }
     }
 
     public void gbn_set_timeline(Timeline tl) {
         this.tl = tl;
     }
+
+
 
 
 }

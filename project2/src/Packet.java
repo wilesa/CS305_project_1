@@ -56,7 +56,15 @@ public class Packet
 
     public boolean isCorrupt()
     {
-        return false;
+        byte[] chars  = msg.getMessage().getBytes();
+
+        int temp = 0;
+        for(int i=0;i<chars.length;i++)
+        {
+            temp = temp + (int)chars[i];
+        }
+
+        return (temp + seqnum + acknum) != checksum;
     }
 
     /**
@@ -74,6 +82,10 @@ public class Packet
         else
         {this.acknum=this.acknum+1;}
 
+    }
+
+    public Packet clone() {
+        return new Packet(new Message(this.getMessage().getMessage()),this.seqnum,this.acknum,this.checksum);
     }
 
 
