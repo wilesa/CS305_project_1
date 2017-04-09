@@ -10,12 +10,6 @@ public class ReceiverTransport
     private NetworkLayer nl;
     private boolean usingTCP;
 
-    private int expected_seq;
-
-    private Packet lastSent;
-
-    private PriorityQueue<Packet> buffer;
-    private ArrayList<String> a;
 
     private GBNReceiver gbn;
     private TCPReceiver tcp;
@@ -23,9 +17,6 @@ public class ReceiverTransport
     public ReceiverTransport(NetworkLayer nl){
         ra = new ReceiverApplication();
         this.nl=nl;
-        expected_seq = 0;
-        a = new ArrayList<>();
-        buffer = new PriorityQueue<>();
         gbn = new GBNReceiver(nl, ra);
         tcp = new TCPReceiver(nl, ra);
         initialize();
@@ -46,7 +37,7 @@ public class ReceiverTransport
         }
     }
 
-    
+
 
     public void setProtocol(int n)
     {
