@@ -21,7 +21,7 @@ public class TCP {
         this.window = new ArrayList<>();
         this.queue = new LinkedList<>();
         this.type = type;
-        System.out.println("[GBN] window size: "+this.windowSize);
+        System.out.println("[GBNSender] window size: "+this.windowSize);
     }
 
 
@@ -84,7 +84,7 @@ public class TCP {
 
 
     public void tcp_timerExpired(){
-        System.out.println("-------------------TIMER EXPIRED GBN-----------------");
+        System.out.println("-------------------TIMER EXPIRED GBNSender-----------------");
         for(Packet pkt : window) {
             System.out.println("[TX] sending: {Seq: " + pkt.getSeqnum() +", " + pkt.getMessage().getMessage() +"}");
             tl.startTimer(40);

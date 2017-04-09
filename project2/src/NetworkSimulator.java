@@ -11,7 +11,7 @@ public class NetworkSimulator
      * @param args[2] loss probability
      * @param args[3] curroption probability
      * @param args[4] window size
-     * @param args[5] GBN vs. TCP
+     * @param args[5] GBNSender vs. TCP
      * @param args[6] Tracing
      */
     public static void main(String[] args)

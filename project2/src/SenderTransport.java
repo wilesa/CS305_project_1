@@ -1,5 +1,4 @@
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedList;
 /**
@@ -17,14 +16,14 @@ public class SenderTransport
 
     private ArrayList<String> messages;
 
-    GBN gbn;
+    GBNSender gbn;
     TCP tcp;
 
 
     public SenderTransport(NetworkLayer nl){
         this.nl=nl;
         initialize();
-        gbn = new GBN(nl, n, Event.SENDER);
+        gbn = new GBNSender(nl, n, Event.SENDER);
         tcp = new TCP(nl, n, Event.SENDER);
     }
 
