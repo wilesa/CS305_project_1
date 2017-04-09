@@ -32,7 +32,7 @@ public class GBN {
             //System.out.println("<Window> "+s);
             if(window.size() < windowSize){
                 Packet p = new Packet(msg, seq++, 0, 0);
-                System.out.println("[Sender] sending: {Seq: " + p.getSeqnum() +", " + p.getMessage().getMessage() +"}");
+                System.out.println("[TX] sending: {Seq: " + p.getSeqnum() +", " + p.getMessage().getMessage() +"}");
                 nl.sendPacket(p.clone(), Event.RECEIVER); //Message arriving from sender to receiver
 
                 //System.out.println("STARTING TIMER");
@@ -53,7 +53,7 @@ public class GBN {
 
     public int gbn_rx(Packet pkt) {
         if(this.type == Event.SENDER) {
-            System.out.println("[Sender] ACK " + pkt.getAcknum() + " recieved");
+            System.out.println("[TX] ACK " + pkt.getAcknum() + " recieved");
             if(!pkt.isCorrupt()){
                 int ack = pkt.getAcknum();
                 //System.out.println("STOPPING TIMER");
@@ -86,7 +86,7 @@ public class GBN {
     public void gbn_timerExpired(){
         System.out.println("-------------------TIMER EXPIRED GBN-----------------");
         for(Packet pkt : window) {
-            System.out.println("[Sender] sending: {Seq: " + pkt.getSeqnum() +", " + pkt.getMessage().getMessage() +"}");
+            System.out.println("[TX] sending: {Seq: " + pkt.getSeqnum() +", " + pkt.getMessage().getMessage() +"}");
             tl.startTimer(40);
 
             nl.sendPacket(pkt.clone(), Event.RECEIVER);

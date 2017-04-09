@@ -29,7 +29,7 @@ public class ReceiverTransport
 
     public void receiveMessage(Packet pkt)
     {
-        System.out.println("[Receiver] received: {Seq: " + pkt.getSeqnum() + ", " + pkt.getMessage().getMessage() + "}");
+        System.out.println("[RX] received: {Seq: " + pkt.getSeqnum() + ", " + pkt.getMessage().getMessage() + "}");
         if(pkt.isCorrupt()) {
             isCorrupt();
         }
@@ -42,7 +42,7 @@ public class ReceiverTransport
             Message m = new Message("ACK");
             Packet ack = new Packet(m, pkt.getSeqnum() + 1, pkt.getSeqnum(), 0);
             this.lastSent = ack;
-            System.out.println("[Receiver] sending: " + ack.getAcknum());
+            System.out.println("[RX] sending: " + ack.getAcknum());
             nl.sendPacket(ack.clone(), Event.SENDER);
             seq++;
             a.add(pkt.getMessage().getMessage());
