@@ -1,4 +1,5 @@
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedList;
 /**
@@ -14,6 +15,8 @@ public class SenderTransport
     private ArrayList<Packet> window;
     private LinkedList<Message> queue;
 
+    private ArrayList<String> messages;
+
     GBN gbn;
 
 
@@ -28,6 +31,11 @@ public class SenderTransport
         seq = 0;
         window = new ArrayList<Packet>();
         queue = new LinkedList<Message>();
+    }
+
+    public void setMessages(ArrayList<String> messages){
+        this.messages = messages;
+        if(gbn != null) gbn.messages = messages;
     }
 
     public void sendMessage(Message msg)
@@ -64,11 +72,13 @@ public class SenderTransport
 
     public void timerExpired()
     {
+        gbn.gbn_timerExpired();
     }
 
     public void setTimeLine(Timeline tl)
     {
         this.tl=tl;
+        this.gbn.gbn_set_timeline(this.tl);
     }
 
     public void setWindowSize(int n)

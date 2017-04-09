@@ -25,8 +25,8 @@ public class ReceiverTransport
         ra.receiveMessage(pkt.getMessage());
         Message m = new Message("");
         Packet ack = new Packet(m, pkt.getSeqnum()+1, pkt.getSeqnum(), 0);
-        System.out.println("{Receiver} sending: "+ack.getAcknum());
-        nl.sendPacket(ack, 0);
+        System.out.println("[Receiver] sending: "+ack.getAcknum());
+        nl.sendPacket(ack, Event.SENDER);
     }
 
     public void setProtocol(int n)

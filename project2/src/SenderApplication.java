@@ -15,7 +15,7 @@ public class SenderApplication
         st = new SenderTransport(nl);
         this.messages=messages;
         index=0;    
-        
+        st.setMessages(messages);
         
     }
     
