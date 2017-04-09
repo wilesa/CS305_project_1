@@ -98,6 +98,6 @@ public class GBN {
     }
 
 
-
+    public void set_window_size(int n){this.windowSize = n;}
 
 }

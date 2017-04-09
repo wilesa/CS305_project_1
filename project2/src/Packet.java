@@ -3,7 +3,7 @@ import java.util.*;
 /**
  * A class which represents a packet
  */
-public class Packet
+public class Packet implements Comparable<Packet>
 {
 
     private Message msg; //the enclosed message
@@ -86,6 +86,10 @@ public class Packet
 
     public Packet clone() {
         return new Packet(new Message(this.getMessage().getMessage()),this.seqnum,this.acknum,this.checksum);
+    }
+
+    public int compareTo(Packet p) {
+        return this.seqnum - p.seqnum;
     }
 
 

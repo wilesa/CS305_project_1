@@ -18,12 +18,14 @@ public class SenderTransport
     private ArrayList<String> messages;
 
     GBN gbn;
+    TCP tcp;
 
 
     public SenderTransport(NetworkLayer nl){
         this.nl=nl;
         initialize();
-        gbn = new GBN(nl, 4, Event.SENDER);
+        gbn = new GBN(nl, n, Event.SENDER);
+        tcp = new TCP(nl, n, Event.SENDER);
     }
 
     public void initialize()
@@ -40,50 +42,34 @@ public class SenderTransport
 
     public void sendMessage(Message msg)
     {
-        gbn.gbn_tx(msg);
-//        if(window.size() != n){
-//            Packet p = new Packet(msg, seq++, 0, 0);
-//            nl.sendPacket(p, Event.RECEIVER); //Message arriving from sender to receiver
-//            // tl.createSendEvent();
-//            window.add(p);
-//        }
-//        else queue.addLast(msg);
-//
-//        //nl.sendPacket(p, 0); //Message Arriving from receiver to sender
+        if(usingTCP) tcp.tcp_tx(msg);
+        else gbn.gbn_tx(msg);
     }
 
     public void receiveMessage(Packet pkt)
     {
-        gbn.gbn_rx(pkt);
-//        System.out.println("ACK " + pkt.getAcknum() + " recieved");
-//        if(!pkt.isCorrupt()){
-//            int ack = pkt.getAcknum();
-//            for(int i=0;i<window.size();i++){
-//                if(window.get(i).getSeqnum() <= ack) {
-//                    window.remove(i);
-//                    i--;
-//                }
-//                if(queue.size()!=0) {
-//                    sendMessage(queue.pop());
-//                }
-//            }
-//        }
+        if(usingTCP) tcp.tcp_rx(pkt);
+        else gbn.gbn_rx(pkt);
     }
 
     public void timerExpired()
     {
-        gbn.gbn_timerExpired();
+        if(!usingTCP) gbn.gbn_timerExpired();
+        else tcp.tcp_timerExpired();
     }
 
     public void setTimeLine(Timeline tl)
     {
         this.tl=tl;
         this.gbn.gbn_set_timeline(this.tl);
+        this.tcp.tcp_set_timeline(this.tl);
     }
 
     public void setWindowSize(int n)
     {
         this.n=n;
+        this.gbn.set_window_size(n);
+        this.tcp.set_window_size(n);
     }
 
     public void setProtocol(int n)
