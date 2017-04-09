@@ -35,7 +35,8 @@ public class GBN {
                 System.out.println("[Sender] sending: {Seq: " + p.getSeqnum() +", " + p.getMessage().getMessage() +"}");
                 nl.sendPacket(p, Event.RECEIVER); //Message arriving from sender to receiver
 
-                tl.startTimer(20);
+                System.out.println("STARTING TIMER");
+                tl.startTimer(40);
 
                 // tl.createSendEvent();
                 window.add(p);
@@ -55,6 +56,7 @@ public class GBN {
             System.out.println("[Sender] ACK " + pkt.getAcknum() + " recieved");
             if(!pkt.isCorrupt()){
                 int ack = pkt.getAcknum();
+                System.out.println("STOPPING TIMER");
                 tl.stopTimer();
                 for(int i=0;i<window.size();i++){
                     if(window.get(i).getSeqnum() <= ack) {
@@ -65,7 +67,10 @@ public class GBN {
                         }
                     }
                 }
-                if(window.size()!=0) tl.startTimer(20);
+                if(window.size()!=0) {
+                    System.out.println("STARTING TIMER");
+                    tl.startTimer(40);
+                }
 
             }
         } else if (this.type == Event.RECEIVER) {
