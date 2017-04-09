@@ -23,7 +23,7 @@ public class SenderTransport
     public SenderTransport(NetworkLayer nl){
         this.nl=nl;
         initialize();
-        gbn = new GBN(nl, 4);
+        gbn = new GBN(nl, 4, Event.SENDER);
     }
 
     public void initialize()
