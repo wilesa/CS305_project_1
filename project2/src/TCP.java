@@ -45,7 +45,7 @@ public class TCP {
                 if(debug > 0) System.out.println("[TX] sending: {Seq: " + p.getSeqnum() +", " + p.getMessage().getMessage() +"}");
                 nl.sendPacket(p.clone(), Event.RECEIVER); //Message arriving from sender to receiver
                 //System.out.println("STARTING TIMER");
-                if(tl.isNull()) tl.startTimer(20);
+                if(tl.isNull()) tl.startTimer(50);
 
                 // tl.createSendEvent();
                 window.add(p);
@@ -82,7 +82,7 @@ public class TCP {
                 }
                 if(window.size()!=0) {
                     //System.out.println("STARTING TIMER");
-                    if(tl.isNull())tl.startTimer(20);
+                    if(tl.isNull())tl.startTimer(50);
                 }
 
             } else {
@@ -124,7 +124,7 @@ public class TCP {
 //        }
 
         if(debug > 0) System.out.println("[TX] sending: {Seq: " + window.get(0).getSeqnum() +", " + window.get(0).getMessage().getMessage() +"}");
-        if(tl.isNull()) tl.startTimer(20);
+        if(tl.isNull()) tl.startTimer(50);
 
         nl.sendPacket(window.get(0).clone(), Event.RECEIVER);
         if(debug > 0) System.out.println();

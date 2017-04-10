@@ -39,7 +39,7 @@ public class GBNSender {
                 nl.sendPacket(p.clone(), Event.RECEIVER); //Message arriving from sender to receiver
 
                 //System.out.println("STARTING TIMER");
-                if(tl.isNull())tl.startTimer(20);
+                if(tl.isNull())tl.startTimer(50);
 
                 // tl.createSendEvent();
                 window.add(p);
@@ -72,7 +72,7 @@ public class GBNSender {
                 }
                 if(window.size()!=0) {
                     //System.out.println("STARTING TIMER");
-                    if(tl.isNull())tl.startTimer(20);
+                    if(tl.isNull())tl.startTimer(50);
                 }
 
             } else {
@@ -90,7 +90,7 @@ public class GBNSender {
         if(debug > 0) System.out.println("-------------------TIMER EXPIRED GBNSender-----------------");
         for(Packet pkt : window) {
             if(debug > 0) System.out.println("[TX] sending: {Seq: " + pkt.getSeqnum() +", " + pkt.getMessage().getMessage() +"}");
-            if(tl.isNull())tl.startTimer(20);
+            if(tl.isNull())tl.startTimer(50);
 
             nl.sendPacket(pkt.clone(), Event.RECEIVER);
         }
