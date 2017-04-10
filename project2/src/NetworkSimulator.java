@@ -41,6 +41,8 @@ public class NetworkSimulator
         st.setProtocol(Integer.parseInt(args[5]));
         rt.setProtocol(Integer.parseInt(args[5]));
         DEBUG = Integer.parseInt(args[6]);
+        st.setDebug(DEBUG);
+        rt.setDebug(DEBUG);
         //this loop will run while there are events in the priority queue
         while(true)
         {
@@ -62,13 +64,13 @@ public class NetworkSimulator
                 //if it arrives at the sender, call the get packet from the sender
                 if(currentEvent.getHost()==Event.SENDER){
                     if(DEBUG>0)
-                        System.out.println("Message arriving from receiver to sender at time " + currentEvent.getTime());
+                        System.out.println("Message arriving from receiver to sender at time " + currentEvent.getTime()+"\n");
                     st.receiveMessage(currentEvent.getPacket());
                 }
                 //if it arrives at the receiver, call the get packet from the receiver
                 else{
                     if(DEBUG>0)
-                        System.out.println("Message arriving from sender to receiver at time " + currentEvent.getTime());
+                        System.out.println("Message arriving from sender to receiver at time " + currentEvent.getTime()+"\n");
                     rt.receiveMessage(currentEvent.getPacket());
                 }
             }

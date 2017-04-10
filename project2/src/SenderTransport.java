@@ -79,4 +79,9 @@ public class SenderTransport
             usingTCP=false;
     }
 
+    public void setDebug(int i) {
+        tcp.setDebug(i);
+        gbn.setDebug(i);
+    }
+
 }

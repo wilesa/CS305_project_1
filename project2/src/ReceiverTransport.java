@@ -47,4 +47,9 @@ public class ReceiverTransport
             usingTCP=false;
     }
 
+    public void setDebug(int i) {
+        tcp.setDebug(i);
+        gbn.setDebug(i);
+    }
+
 }

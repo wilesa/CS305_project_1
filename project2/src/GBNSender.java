@@ -13,6 +13,7 @@ public class GBNSender {
     private NetworkLayer nl;
     private Timeline tl;
     private int type;
+    private int debug;
 
     public GBNSender(NetworkLayer nl, int windowSize, int type) {
         this.nl = nl;
@@ -21,8 +22,10 @@ public class GBNSender {
         this.window = new ArrayList<>();
         this.queue = new LinkedList<>();
         this.type = type;
-        System.out.println("[GBNSender] window size: "+this.windowSize);
+        debug = 0;
     }
+
+    public void setDebug(int i) {debug = i;}
 
 
     public int gbn_tx(Message msg) {
@@ -32,11 +35,11 @@ public class GBNSender {
             //System.out.println("<Window> "+s);
             if(window.size() < windowSize){
                 Packet p = new Packet(msg, seq++, 0, 0);
-                System.out.println("[TX] sending: {Seq: " + p.getSeqnum() +", " + p.getMessage().getMessage() +"}");
+                if(debug > 0) System.out.println("[TX] sending: {Seq: " + p.getSeqnum() +", " + p.getMessage().getMessage() +"}");
                 nl.sendPacket(p.clone(), Event.RECEIVER); //Message arriving from sender to receiver
 
                 //System.out.println("STARTING TIMER");
-                tl.startTimer(40);
+                if(tl.isNull())tl.startTimer(100);
 
                 // tl.createSendEvent();
                 window.add(p);
@@ -53,11 +56,11 @@ public class GBNSender {
 
     public int gbn_rx(Packet pkt) {
         if(this.type == Event.SENDER) {
-            System.out.println("[TX] ACK " + pkt.getAcknum() + " recieved");
+            if(debug > 0) System.out.println("[TX] ACK " + pkt.getAcknum() + " recieved");
             if(!pkt.isCorrupt()){
                 int ack = pkt.getAcknum();
                 //System.out.println("STOPPING TIMER");
-                tl.stopTimer();
+                if(!tl.isNull())tl.stopTimer();
                 for(int i=0;i<window.size();i++){
                     if(window.get(i).getSeqnum() <= ack) {
                         window.remove(i);
@@ -69,11 +72,11 @@ public class GBNSender {
                 }
                 if(window.size()!=0) {
                     //System.out.println("STARTING TIMER");
-                    tl.startTimer(40);
+                    if(tl.isNull())tl.startTimer(100);
                 }
 
             } else {
-                System.out.println("[TX] ACK Corrupt");
+                if(debug > 0) System.out.println("[TX] ACK Corrupt");
             }
         } else if (this.type == Event.RECEIVER) {
 
@@ -84,10 +87,10 @@ public class GBNSender {
 
 
     public void gbn_timerExpired(){
-        System.out.println("-------------------TIMER EXPIRED GBNSender-----------------");
+        if(debug > 0) System.out.println("-------------------TIMER EXPIRED GBNSender-----------------");
         for(Packet pkt : window) {
-            System.out.println("[TX] sending: {Seq: " + pkt.getSeqnum() +", " + pkt.getMessage().getMessage() +"}");
-            tl.startTimer(40);
+            if(debug > 0) System.out.println("[TX] sending: {Seq: " + pkt.getSeqnum() +", " + pkt.getMessage().getMessage() +"}");
+            if(tl.isNull())tl.startTimer(100);
 
             nl.sendPacket(pkt.clone(), Event.RECEIVER);
         }
