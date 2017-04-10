@@ -19,6 +19,8 @@ public class TCP {
     private int lastAck;
     private int debug;
 
+
+
     public TCP(NetworkLayer nl, int windowSize, int type) {
         this.nl = nl;
         this.seq = 0;
@@ -43,7 +45,7 @@ public class TCP {
                 if(debug > 0) System.out.println("[TX] sending: {Seq: " + p.getSeqnum() +", " + p.getMessage().getMessage() +"}");
                 nl.sendPacket(p.clone(), Event.RECEIVER); //Message arriving from sender to receiver
                 //System.out.println("STARTING TIMER");
-                if(tl.isNull()) tl.startTimer(100);
+                if(tl.isNull()) tl.startTimer(20);
 
                 // tl.createSendEvent();
                 window.add(p);
@@ -80,7 +82,7 @@ public class TCP {
                 }
                 if(window.size()!=0) {
                     //System.out.println("STARTING TIMER");
-                    if(tl.isNull())tl.startTimer(100);
+                    if(tl.isNull())tl.startTimer(20);
                 }
 
             } else {
@@ -122,7 +124,7 @@ public class TCP {
 //        }
 
         if(debug > 0) System.out.println("[TX] sending: {Seq: " + window.get(0).getSeqnum() +", " + window.get(0).getMessage().getMessage() +"}");
-        if(tl.isNull()) tl.startTimer(100);
+        if(tl.isNull()) tl.startTimer(20);
 
         nl.sendPacket(window.get(0).clone(), Event.RECEIVER);
         if(debug > 0) System.out.println();
