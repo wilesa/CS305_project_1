@@ -24,6 +24,7 @@ public class TCPReceiver {
 
     public void setDebug(int i) {this.debug = i;}
 
+    //Handles Receive Logic for TCP receiver
     public void tcp_rx(Packet pkt) {
         if(debug > 0) System.out.println("[RX] received: {Seq: " + pkt.getSeqnum() + ", " + pkt.getMessage().getMessage() + "}");
         if (pkt.isCorrupt()) {
@@ -54,6 +55,7 @@ public class TCPReceiver {
         }
     }
 
+    //If a packet is received out of order, this buffers the packet by putting it in an out of order ArrayList
     public void outOfOrder(Packet pkt) {
         Packet ack;
         if(!in_order.isEmpty()) ack = new Packet(new Message("ACK"), pkt.getSeqnum() + 1, in_order.get(in_order.size()-1).getSeqnum()+1, 0);
@@ -83,10 +85,12 @@ public class TCPReceiver {
         //System.out.println();
     }
 
+    //If the packet is corrupt, do nothing
     public void isCorrupt() {
         if(debug > 0) System.out.println("[RX] Corrupt\n");
     }
 
+    //Check to see if we can combine the out of order and in order ArrayLists, and merges what it can
     public void merge(){
         if(!out_of_order.isEmpty() && !in_order.isEmpty() && out_of_order.peek().getSeqnum() == in_order.get(in_order.size()-1).getSeqnum()+1) {
             Packet p = out_of_order.poll();
