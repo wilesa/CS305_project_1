@@ -1,3 +1,5 @@
+import java.util.Scanner;
+
 /**
  * Created by Austin on 5/1/2017.
  */
@@ -10,7 +12,7 @@ public class RouterEntry {
     public RouterEntry(String ip, String port, String weight) {
         this.ip = ip;
         this.port = Integer.valueOf(port);
-        this.weight = Integer.valueOf(port);
+        this.weight = Integer.valueOf(weight);
 
     }
 
@@ -20,8 +22,12 @@ public class RouterEntry {
         this.weight = weight;
     }
 
+    public RouterEntry(String received_msg){
+
+    }
+
     public String toString() {
-        return this.ip + " " + port + " " + weight;
+        return this.ip + ":" + port + " " + weight;
     }
 
     public String getIP() {return this.ip;}
