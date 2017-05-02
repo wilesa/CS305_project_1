@@ -5,8 +5,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * Created by Austin on 5/1/2017.
@@ -19,6 +18,9 @@ public class Router implements Runnable {
     ArrayList<RouterEntry> dv_original;
     ArrayList<RouterEntry> dv;
     ArrayList<ArrayList<RouterEntry>> dv_neighbors;
+    HashMap<String, RouterEntry> routerMap;
+    ArrayList<String> neighbors;
+    ArrayList<String> reachable;
     byte[] dv_bytes;
     int updatePeriod;
 
@@ -27,18 +29,52 @@ public class Router implements Runnable {
 
 
     public Router(String filename) {
+        this.routerMap = new HashMap<>();
         this.poisonReverse = 0;
-        this.dv = readFile(filename);
-        this.dv_original = dv;
+        init(filename);
         this.dv_neighbors = new ArrayList<>();
-        this.ipaddr = dv.get(0).getIP();
-        this.port = dv.get(0).getPort();
+        //this.ipaddr = dv.get(0).getIP();
+        //this.port = dv.get(0).getPort();
 
         this.updatePeriod = 2;
 
-        for(RouterEntry r : dv) System.out.println(r.toString());
+        ArrayList<String> neighbors = new ArrayList<String>(this.routerMap.keySet());
+//        Set set = routerMap.entrySet();
+//        Iterator i = set.iterator();
+//        while(i.hasNext()) {
+//            Map.Entry me = (Map.Entry)i.next();
+//            RouterEntry ra = (RouterEntry) me.getValue();
+//            System.out.println(me.getKey()+": "+ra.getWeight());
+//        }
+        for(String s : reachable) System.out.println(routerMap.get(s).toString());
 
         updateDV();
+    }
+
+    private void init(String filename) {
+        //ArrayList<RouterEntry> res = new ArrayList<>();
+        try {
+            Scanner sc = new Scanner(new File(filename));
+            if(!sc.hasNextLine()) return;
+            String[] line = sc.nextLine().split(" ");
+            this.ipaddr = line[0];
+            this.port = Integer.valueOf(line[1]);
+            routerMap.put(line[0] + ":" + line[1], new RouterEntry(line[0], line[1], 0));
+            while (sc.hasNextLine()) {
+                line = sc.nextLine().split(" ");
+                if(line.length != 3) throw new Exception("Line expecting length of 3: length of line is " + line.length);
+                routerMap.put(line[0]+":"+line[1], new RouterEntry(line[0], line[1], line[2]));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error reading file");
+        }
+        this.neighbors = new ArrayList<String>(this.routerMap.keySet());
+        this.reachable = new ArrayList<String>(this.routerMap.keySet());
+        //this.dv = res;
+        //this.dv_original = res;
+
     }
 
     @Override
@@ -67,7 +103,7 @@ public class Router implements Runnable {
         thread_advertise.start();
         thread_rx.start();
 
-        handleInput();
+        //handleInput();
     }
 
     public Boolean ifChanged() {
@@ -85,21 +121,30 @@ public class Router implements Runnable {
             InetAddress IPAddress = receivePacket.getAddress();
             int port = receivePacket.getPort();
 
-            Scanner sc = new Scanner(msg);
-            while(sc.hasNextLine()){
+            handleIncMsg(msg);
 
-            }
+            System.out.println("RECEIVED (" + IPAddress.toString()+":"+port+"): " + msg);
+        }
+    }
 
-//            System.out.println("RECEIVED (" + IPAddress.toString()+":"+port+"): " + msg);
+    private void handleIncMsg(String msg) {
+        Scanner sc = new Scanner(msg);
+        while(sc.hasNextLine()){
+            String[] line = sc.nextLine().split(" ");
+            String key = line[0];
+            String weight = line[1];
+
+
         }
     }
 
     public void updateDV() {
 
+        this.reachable = new ArrayList<String>(this.routerMap.keySet());
         //Converts Array of RouterEntry to byte array
         String s = "";
-        for(RouterEntry e : this.dv) {
-            s = s + e.toString() + "\n";
+        for(String router : this.reachable) {
+            s = s + this.routerMap.get(router).toString() + "\n";
         }
         this.dv_bytes = s.getBytes();
     }
@@ -142,24 +187,8 @@ public class Router implements Runnable {
         this.poisonReverse = val;
     }
 
-    public ArrayList<RouterEntry> readFile(String filename) {
-        ArrayList<RouterEntry> res = new ArrayList<>();
-        try {
-            Scanner sc = new Scanner(new File(filename));
-            if(!sc.hasNextLine()) return null;
-            String[] line = sc.nextLine().split(" ");
-            res.add(new RouterEntry(line[0], line[1], 0));
-            while (sc.hasNextLine()) {
-                line = sc.nextLine().split(" ");
-                if(line.length != 3) throw new Exception("Line expecting length of 3: length of line is " + line.length);
-                res.add(new RouterEntry(line[0], line[1], line[2]));
-            }
-            return res;
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Error reading file");
-        }
-        return null;
+    public void readFile(String filename) {
+
     }
 
 }
