@@ -20,6 +20,7 @@ public class Router implements Runnable {
     int port;
     DV dv_original;
     int updatePeriod;
+    HashMap<String, DV> neighbors;
 
     Thread thread_advertise;
     Thread thread_rx;
@@ -28,6 +29,7 @@ public class Router implements Runnable {
 
 
     public Router(String filename) {
+        this.neighbors = new HashMap<>();
         this.poisonReverse = 0;
         try {
             dv = new DV(new String(Files.readAllBytes(Paths.get(filename))));
@@ -87,25 +89,27 @@ public class Router implements Runnable {
             InetAddress IPAddress = receivePacket.getAddress();
             int port = receivePacket.getPort();
 
-            handleIncMsg(msg);
+            handleIncDV(msg);
 
 //            System.out.println("RECEIVED (" + IPAddress.toString()+":"+port+"): " + msg);
         }
     }
 
-    private void handleIncMsg(String msg) {
+    private void handleIncDV(String msg) {
         Scanner sc = new Scanner(msg);
-        System.out.println("RECEIVED: " + msg);
-        while(sc.hasNextLine()){
-            String[] line = sc.nextLine().split(" ");
-            if(line.length != 2) {
-                //System.out.println("Line does not have length 2. Length = " + line.length);
-                continue;
+        DV d = new DV(msg);
+        System.out.println("RECEIVED ("+d.getSource()+"): \n" + d.toString());
+        if (neighbors.containsKey(d.getSource())) {
+            p("Check for updated DV");
+            if(d.isDifferent(neighbors.get(d.getSource()))){
+                p("Calculating new DV");
+            } else {
+                p("DV has not changed");
             }
-            String key = line[0];
-            String weight = line[1];
-
-
+        } else {
+            p("DV from new neighbor! Adding to map");
+            neighbors.put(d.getSource(),d);
+            p("Calculating new DV");
         }
     }
 
@@ -151,5 +155,8 @@ public class Router implements Runnable {
         this.poisonReverse = val;
     }
 
+    public void p(String s){
+        System.out.println(s);
+    }
 
 }

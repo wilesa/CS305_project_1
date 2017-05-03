@@ -11,15 +11,21 @@ public class RouterEntry {
 
     public RouterEntry(String ip, String port, String weight) {
         this.ip = ip;
-        this.port = Integer.valueOf(port);
-        this.weight = Integer.valueOf(weight);
+        this.port = Integer.parseInt(port.trim());
+        this.weight = Integer.parseInt(weight.trim());
 
     }
 
     public RouterEntry(String ip, String port, int weight){
         this.ip = ip;
-        this.port = Integer.valueOf(port);
+        this.port = Integer.parseInt(port.trim());
         this.weight = weight;
+    }
+
+    public RouterEntry(String key, String weight){
+        this.ip = key.split(":")[0];
+        this.port = Integer.parseInt(key.split(":")[1].trim());
+        this.weight = Integer.parseInt(weight.trim());
     }
 
     public RouterEntry(String received_msg){
