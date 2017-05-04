@@ -37,7 +37,7 @@ public class Router implements Runnable {
         try {
             dv = new DV(new String(Files.readAllBytes(Paths.get(filename))));
             original = new DV(new String(Files.readAllBytes(Paths.get(filename))));
-            addr = dv.getSource();
+            addr = dv.source;
             ip = addr.split(":")[0];
             port = Integer.valueOf(addr.split(":")[1]);
             routerKey = ip.trim() + ":" + port;
@@ -46,7 +46,14 @@ public class Router implements Runnable {
             System.out.println("Error reading file");
         }
         this.updatePeriod = 2;
-        updateDV();
+
+        for(String s : dv.getReachables()) {
+            DV tmp = new DV();
+            tmp.setSource(dv.get(s).key);
+            neighbors.put(dv.get(s).key, tmp);
+        }
+//        for(String s : neighbors.keySet()) p(neighbors.get(s).source);
+//        updateDV();
     }
 
     @Override
@@ -72,10 +79,10 @@ public class Router implements Runnable {
 
             }
         });
-        thread_advertise.start();
+        //thread_advertise.start();
         thread_rx.start();
 
-        //handleInput();
+        handleInput();
     }
 
     public Boolean ifChanged() {
@@ -102,23 +109,23 @@ public class Router implements Runnable {
     private void handleIncDV(String msg) {
         Scanner sc = new Scanner(msg);
         DV d = new DV(msg);
-        System.out.println("RECEIVED ("+d.getSource()+"): \n" + d.toString());
-        if (neighbors.containsKey(d.getSource().trim())) {
-            p("Check for updated DV");
-            if(d.isDifferent(neighbors.get(d.getSource().trim()))){
-                neighbors.replace(d.getSource().trim(), d);
-                p("Calculating new DV");
+        //System.out.println("RECEIVED ("+d.getSource()+"): \n" + d.toString());
+        if (neighbors.containsKey(d.source)) {
+            //p("Check for updated DV");
+            if(d.isDifferent(neighbors.get(d.source))){
+                neighbors.replace(d.source, d);
+                //p("Calculating new DV");
                 updateDV();
                 try {
                     advertise();
                 } catch (Exception e) {e.printStackTrace();}
             } else {
-                p("DV has not changed");
+                //p("DV has not changed");
             }
         } else {
-            p("DV from new neighbor! Adding to map");
-            neighbors.put(d.getSource(),d);
-            p("Calculating new DV");
+            //p("DV from new neighbor! Adding to map");
+            neighbors.put(d.source, d);
+            //p("Calculating new DV");
             updateDV();
             try {
                 advertise();
@@ -157,6 +164,7 @@ public class Router implements Runnable {
             }
             tempDV.put(key, new RouterEntry(key, "" + min));
         }
+        dv = tempDV;
     }
 
     public void sendUpdate() {
@@ -167,13 +175,20 @@ public class Router implements Runnable {
 
     }
 
-    public void advertise() throws Exception {
-        DatagramSocket clientSocket = new DatagramSocket();
-        InetAddress IPAddress = InetAddress.getByName("127.0.0.1");
-        byte[] msg = dv.toString().getBytes();
-        //DatagramPacket sendPacket = new DatagramPacket(msg, msg.length, IPAddress, 9876);
-        clientSocket.send(new DatagramPacket(msg, msg.length, IPAddress, 9876));
-        clientSocket.close();
+    public void advertise() {
+        try {
+            DatagramSocket clientSocket = new DatagramSocket();
+            InetAddress IPAddress = InetAddress.getByName("127.0.0.1");
+            byte[] msg = dv.toString().getBytes();
+            //DatagramPacket sendPacket = new DatagramPacket(msg, msg.length, IPAddress, 9876);
+            for(String s : neighbors.keySet()) {
+                if(!dv.get(s).key.equals(dv.getSource())) {
+//                    p("Sending to " + neighbors.get(s).ip + ":" + neighbors.get(s).port);
+                    clientSocket.send(new DatagramPacket(msg, msg.length, InetAddress.getByName(neighbors.get(s).ip), neighbors.get(s).port));
+                }
+            }
+            clientSocket.close();
+        } catch (Exception e) {e.printStackTrace();}
     }
 
     public void handleInput() {
@@ -183,11 +198,23 @@ public class Router implements Runnable {
         while(true) {
             System.out.print("-> ");
             input = sc.nextLine();
+            p(input);
             switch(input) {
                 case "help" : System.out.println(input);break;
                 case "PRINT": {
-                    //for(RouterEntry r : this.dv) System.out.println(r.toString());
+                    p("Current Distance Vector: ");
+                    p(dv.toString());
+                    p("Neighbors Distance Vectors:");
+                    for(String s : neighbors.keySet())
+                        if(!neighbors.get(s).getReachables().isEmpty())
+                            System.out.println(neighbors.get(s).toString());
+                    break;
                 }
+                case "AD" : {
+                    advertise();
+                    break;
+                }
+
                 default: break;
             }
         }
@@ -199,6 +226,11 @@ public class Router implements Runnable {
 
     public void p(String s){
         System.out.println(s);
+    }
+
+    public static void main(String[] args) {
+        Router r1 = new Router(args[0]);
+        r1.run();
     }
 
 }

@@ -7,8 +7,10 @@ import java.util.Scanner;
  */
 public class DV {
 
-    private String source;
-    private HashMap<String, RouterEntry> routerMap;
+    public String source;
+    public String ip;
+    public int port;
+    public HashMap<String, RouterEntry> routerMap;
 
     public DV(String dv) {
         String line[];
@@ -34,6 +36,8 @@ public class DV {
                 else routerMap.put(line[0] + ":" + line[1], new RouterEntry(line[0], line[1], line[2]));
             }
         }
+        ip = source.split(":")[0].trim();
+        port = Integer.parseInt(source.split(":")[1].trim());
         //for(String s : reachables) p(s);
 
     }
@@ -47,7 +51,12 @@ public class DV {
         else routerMap.put(key, r);
     }
 
-    public void setSource(String source){this.source = source;}
+    public void setSource(String source){
+        this.source = source;
+        ip = source.split(":")[0].trim();
+        port = Integer.parseInt(source.split(":")[1].trim());
+    }
+
     public String getSource(){return this.source.trim();}
 
 
