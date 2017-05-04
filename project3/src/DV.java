@@ -92,18 +92,18 @@ public class DV {
         ArrayList<String> dv_compare_reachables = dv_compare.getReachables();
         ArrayList<String> reachables = getReachables();
         if(dv_compare_reachables.size() != reachables.size()) {
-            p("Sizes not equal");
+//            p("Sizes not equal");
             return true;
         }
         for(String key : dv_compare_reachables) {
             if(!routerMap.containsKey(key)) {
-                p("New key added");
+//                p("New key added");
                 return true;
             }
         }
         for(String key : reachables) {
             if(!dv_compare.containsKey(key)) {
-                p("Key removed");
+//                p("Key removed");
                 return true;
             }
         }

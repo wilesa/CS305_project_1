@@ -52,7 +52,7 @@ public class Router implements Runnable {
             tmp.setSource(dv.get(s).key);
             neighbors.put(dv.get(s).key, tmp);
         }
-//        for(String s : neighbors.keySet()) p(neighbors.get(s).source);
+//        for(String s : dv.getReachables()) p(dv.get(s).key);
 //        updateDV();
     }
 
@@ -109,7 +109,7 @@ public class Router implements Runnable {
     private void handleIncDV(String msg) {
         Scanner sc = new Scanner(msg);
         DV d = new DV(msg);
-        //System.out.println("RECEIVED ("+d.getSource()+"): \n" + d.toString());
+//        System.out.println("RECEIVED ("+d.getSource()+"): \n" + d.toString());
         if (neighbors.containsKey(d.source)) {
             //p("Check for updated DV");
             if(d.isDifferent(neighbors.get(d.source))){
@@ -139,11 +139,17 @@ public class Router implements Runnable {
         HashMap<String,String> tempFoward = new HashMap<>();
         ArrayList<String> reachable = new ArrayList<>();
         //HashMap<String, RouterEntry> all = new HashMap<>();
+//        p(neighbors.get("127.0.0.1:9876").getReachables().toString());
         for(String n : neighbors.keySet()) {
+            if(!reachable.contains(n)) reachable.add(n);
             for(String s : neighbors.get(n).getReachables()) {
-                if(!reachable.contains(s)) reachable.add(s);
+                if(!reachable.contains(s)) {
+                    reachable.add(s);
+                }
             }
         }
+        //p(neighbors.keySet().toString());
+//        p(reachable.toString());
 
         for(String key : reachable) {
             int tmp = 0;
@@ -182,8 +188,9 @@ public class Router implements Runnable {
             byte[] msg = dv.toString().getBytes();
             //DatagramPacket sendPacket = new DatagramPacket(msg, msg.length, IPAddress, 9876);
             for(String s : neighbors.keySet()) {
-                if(!dv.get(s).key.equals(dv.getSource())) {
+                if(!neighbors.get(s).source.equals(dv.source)) {
 //                    p("Sending to " + neighbors.get(s).ip + ":" + neighbors.get(s).port);
+//                    p(dv.toString());
                     clientSocket.send(new DatagramPacket(msg, msg.length, InetAddress.getByName(neighbors.get(s).ip), neighbors.get(s).port));
                 }
             }
@@ -198,7 +205,6 @@ public class Router implements Runnable {
         while(true) {
             System.out.print("-> ");
             input = sc.nextLine();
-            p(input);
             switch(input) {
                 case "help" : System.out.println(input);break;
                 case "PRINT": {
