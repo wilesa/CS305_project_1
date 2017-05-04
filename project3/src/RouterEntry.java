@@ -48,10 +48,10 @@ public class RouterEntry {
 
     public Boolean isDifferent(RouterEntry r_compare) {
         if(!r_compare.getIP().trim().equals(ip.trim()) || r_compare.getPort() != port || r_compare.getWeight() != weight) {
-            System.out.println("RouterEntries different");
-            System.out.println("ip: " + ip +", " + r_compare.getIP());
-            System.out.println("port: " + port +", " + r_compare.getPort());
-            System.out.println("weight: " + weight +", " + r_compare.getWeight());
+//            System.out.println("RouterEntries different");
+//            System.out.println("ip: " + ip +", " + r_compare.getIP());
+//            System.out.println("port: " + port +", " + r_compare.getPort());
+//            System.out.println("weight: " + weight +", " + r_compare.getWeight());
             return true;
         }
         return false;
