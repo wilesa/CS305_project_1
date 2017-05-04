@@ -38,6 +38,15 @@ public class DV {
 
     }
 
+    public DV() {
+        routerMap = new HashMap<>();
+    }
+
+    public void put(String key, RouterEntry r) {
+        if(routerMap.containsKey(key)) routerMap.replace(key, r);
+        else routerMap.put(key, r);
+    }
+
     public void setSource(String source){this.source = source;}
     public String getSource(){return this.source.trim();}
 
@@ -62,8 +71,12 @@ public class DV {
         return s.trim();
     }
 
-    public Boolean contains(String key) {
-        return routerMap.containsKey(key) ? true : false;
+    public Boolean containsKey(String key) {
+        return routerMap.containsKey(key);
+    }
+
+    public void update(DV dv_new) {
+
     }
 
     public Boolean isDifferent(DV dv_compare) {
@@ -80,7 +93,15 @@ public class DV {
             }
         }
         for(String key : reachables) {
-
+            if(!dv_compare.containsKey(key)) {
+                p("Key removed");
+                return true;
+            }
+        }
+        for(String key : reachables) {
+            if(routerMap.get(key).isDifferent(dv_compare.get(key))) {
+                return true;
+            }
         }
         return false;
     }
