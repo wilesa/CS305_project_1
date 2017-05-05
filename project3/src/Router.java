@@ -47,12 +47,16 @@ public class Router implements Runnable {
         }
         this.updatePeriod = 2;
 
-        for(String s : dv.getReachables()) {
-            DV tmp = new DV();
-            tmp.setSource(dv.get(s).key);
-            neighbors.put(dv.get(s).key, tmp);
+        for(String s : dv.keySet()) {
+            if(!s.equals(routerKey)) {
+                DV tmp = new DV();
+                tmp.setSource(s);
+                neighbors.put(s, tmp);
+            }
         }
-//        for(String s : dv.getReachables()) p(dv.get(s).key);
+        for(String s : dv.keySet()) p(s+" " + dv.get(s));
+        p("");
+        for(String s : neighbors.keySet()) p(s);
 //        updateDV();
     }
 
@@ -97,6 +101,7 @@ public class Router implements Runnable {
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             serverSocket.receive(receivePacket);
             String msg = new String(receivePacket.getData());
+            System.out.println("RECEIVED ("+receivePacket.getAddress()+":"+receivePacket.getPort()+")\n"+msg+"\n");
             InetAddress IPAddress = receivePacket.getAddress();
             int port = receivePacket.getPort();
 
@@ -108,24 +113,19 @@ public class Router implements Runnable {
 
     private void handleIncDV(String msg) {
         Scanner sc = new Scanner(msg);
+        if(isCorrupt(msg)) return;
         DV d = new DV(msg);
-//        System.out.println("RECEIVED ("+d.getSource()+"): \n" + d.toString());
         if (neighbors.containsKey(d.source)) {
-            //p("Check for updated DV");
             if(d.isDifferent(neighbors.get(d.source))){
                 neighbors.replace(d.source, d);
-                //p("Calculating new DV");
                 updateDV();
                 try {
                     advertise();
                 } catch (Exception e) {e.printStackTrace();}
             } else {
-                //p("DV has not changed");
             }
         } else {
-            //p("DV from new neighbor! Adding to map");
             neighbors.put(d.source, d);
-            //p("Calculating new DV");
             updateDV();
             try {
                 advertise();
@@ -138,29 +138,25 @@ public class Router implements Runnable {
         tempDV.setSource(routerKey);
         HashMap<String,String> tempFoward = new HashMap<>();
         ArrayList<String> reachable = new ArrayList<>();
-        //HashMap<String, RouterEntry> all = new HashMap<>();
-//        p(neighbors.get("127.0.0.1:9876").getReachables().toString());
         for(String n : neighbors.keySet()) {
             if(!reachable.contains(n)) reachable.add(n);
-            for(String s : neighbors.get(n).getReachables()) {
+            for(String s : neighbors.get(n).keySet()) {
                 if(!reachable.contains(s)) {
                     reachable.add(s);
                 }
             }
         }
-        //p(neighbors.keySet().toString());
-//        p(reachable.toString());
 
         for(String key : reachable) {
             int tmp = 0;
             int min = Integer.MAX_VALUE;
             if (original.containsKey(key)) {
-                min = original.get(key).getWeight();
+                min = original.get(key);
                 tempFoward.put(key, key);
             }
             for(String s : neighbors.keySet()) {
                 if(neighbors.get(s).containsKey(key))  {
-                    tmp = original.get(s).getWeight() + neighbors.get(s).get(key).getWeight();
+                    tmp = original.get(s) + neighbors.get(s).get(key);
                     if(tmp < min) {
                         min = tmp;
                         if(tempFoward.containsKey(key)) tempFoward.replace(key, s);
@@ -168,7 +164,7 @@ public class Router implements Runnable {
                     }
                 }
             }
-            tempDV.put(key, new RouterEntry(key, "" + min));
+            tempDV.put(key, min);
         }
         dv = tempDV;
     }
@@ -182,18 +178,20 @@ public class Router implements Runnable {
     }
 
     public void advertise() {
+        String m = dv.toString();
+        for(String s : neighbors.keySet()) {
+            if(!neighbors.get(s).source.equals(dv.source)) {
+                send(m, neighbors.get(s).ip, neighbors.get(s).port);
+            }
+        }
+    }
+
+    public void send(String msg, String ip, int port) {
         try {
             DatagramSocket clientSocket = new DatagramSocket();
-            InetAddress IPAddress = InetAddress.getByName("127.0.0.1");
-            byte[] msg = dv.toString().getBytes();
-            //DatagramPacket sendPacket = new DatagramPacket(msg, msg.length, IPAddress, 9876);
-            for(String s : neighbors.keySet()) {
-                if(!neighbors.get(s).source.equals(dv.source)) {
-//                    p("Sending to " + neighbors.get(s).ip + ":" + neighbors.get(s).port);
-//                    p(dv.toString());
-                    clientSocket.send(new DatagramPacket(msg, msg.length, InetAddress.getByName(neighbors.get(s).ip), neighbors.get(s).port));
-                }
-            }
+            InetAddress IPAddress = InetAddress.getByName(ip);
+            p("Sending: " + ip + ":" + port+ " from port: "+clientSocket.getLocalPort()+"\n"+msg);
+            clientSocket.send(new DatagramPacket(msg.getBytes(), msg.getBytes().length, IPAddress, port));
             clientSocket.close();
         } catch (Exception e) {e.printStackTrace();}
     }
@@ -212,8 +210,8 @@ public class Router implements Runnable {
                     p(dv.toString());
                     p("Neighbors Distance Vectors:");
                     for(String s : neighbors.keySet())
-                        if(!neighbors.get(s).getReachables().isEmpty())
-                            System.out.println(neighbors.get(s).toString());
+                        if(!neighbors.get(s).keySet().isEmpty())
+                            System.out.println("Source: " + s + "\n" + neighbors.get(s).toString() + "\n");
                     break;
                 }
                 case "AD" : {
@@ -224,6 +222,29 @@ public class Router implements Runnable {
                 default: break;
             }
         }
+    }
+
+    public boolean isCorrupt(String input) {
+        String source = null;
+        Scanner sc = new Scanner(input);
+        if(!sc.hasNextLine()) return true;
+        try {
+            while (sc.hasNextLine()) {
+                String line[];
+                line = sc.nextLine().trim().split(" ");
+                if (line.length != 2) throw new Exception("Line length wrong");//System.out.println("LINE LENGTH WRONG (expecting 2): " + line.toString());
+                if (line[1].trim().equals("0")) source = line[0].trim();
+            }
+            if (source == null) {
+                throw new Exception("Could not find source");//System.out.println("Could not find source");
+            }
+            InetAddress addr = InetAddress.getByName(source.split(":")[0].trim());
+            Integer.parseInt(source.split(":")[1].trim());
+            //for(String s : reachables) p(s);
+        } catch (Exception e) {
+            return true;
+        }
+        return false;
     }
 
     public void setPoisonReverse(int val) {

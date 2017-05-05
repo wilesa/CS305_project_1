@@ -10,30 +10,34 @@ public class DV {
     public String source;
     public String ip;
     public int port;
-    public HashMap<String, RouterEntry> routerMap;
+    public HashMap<String, Integer> routerMap;
 
     public DV(String dv) {
-        String line[];
         source = null;
         routerMap = new HashMap<>();
         Scanner sc = new Scanner(dv);
         if(!sc.hasNextLine()) return;
         if(dv.contains(":")){
             while (sc.hasNextLine()) {
+                String line[];
                 line = sc.nextLine().trim().split(" ");
-                if (line.length != 2) System.out.println("LINE LENGTH WRONG (expecting 2)");
-                if(line[1].equals("0")) source = line[0];
-                routerMap.put(line[0], new RouterEntry(line[0], line[1]));
+                if (line.length != 2) System.out.println("LINE LENGTH WRONG (expecting 2): " + line.toString());
+                if(line[1].trim().equals("0")) source = line[0].trim();
+                routerMap.put(line[0].trim(), Integer.parseInt(line[1].trim()));
             }
-            if(source == null) System.out.println("Could not find source");
+            if(source == null) {
+                System.out.println("Could not find source");
+                p(toString());
+            }
         } else {
+            String line[];
             line = sc.nextLine().split(" ");
             source = line[0]+":"+line[1];
-            routerMap.put(line[0] + ":" + line[1], new RouterEntry(line[0], line[1], 0));
+            routerMap.put(source, 0);
             while (sc.hasNextLine()) {
                 line = sc.nextLine().split(" ");
-                if (line.length != 3) System.out.println("LINE LENGTH WRONG (expecting 3)");
-                else routerMap.put(line[0] + ":" + line[1], new RouterEntry(line[0], line[1], line[2]));
+                if (line.length != 3) System.out.println("LINE LENGTH WRONG (expecting 3): " + line.toString());
+                else routerMap.put(line[0] + ":" + line[1], Integer.parseInt(line[2]));
             }
         }
         ip = source.split(":")[0].trim();
@@ -46,9 +50,9 @@ public class DV {
         routerMap = new HashMap<>();
     }
 
-    public void put(String key, RouterEntry r) {
-        if(routerMap.containsKey(key)) routerMap.replace(key, r);
-        else routerMap.put(key, r);
+    public void put(String key, int weight) {
+        if(routerMap.containsKey(key)) routerMap.replace(key, weight);
+        else routerMap.put(key, weight);
     }
 
     public void setSource(String source){
@@ -64,17 +68,18 @@ public class DV {
         System.out.println(s);
     }
 
-    public RouterEntry get(String key) {
-        return routerMap.containsKey(key) ? routerMap.get(key) : null;
+    public int get(String key) {
+        return routerMap.containsKey(key) ? routerMap.get(key) : -1;
     }
 
-    public ArrayList<String> getReachables() {return new ArrayList<>(routerMap.keySet());}
+    public ArrayList<String> keySet() {return new ArrayList<>(routerMap.keySet());}
 
     public String toString() {
         String s = "";
-        ArrayList<String> reachables = getReachables();
+        HashMap<String, Integer> rMap = (HashMap<String,Integer>)routerMap.clone();
+        ArrayList<String> reachables = new ArrayList<>(routerMap.keySet());
         for(int i = 0; i < reachables.size(); i++) {
-            s = s + routerMap.get(reachables.get(i)).toString();
+            s = s + reachables.get(i) + " " + rMap.get(reachables.get(i)).toString();
             if(i != reachables.size()-1) s = s + "\n";
         }
         return s.trim();
@@ -89,8 +94,8 @@ public class DV {
     }
 
     public Boolean isDifferent(DV dv_compare) {
-        ArrayList<String> dv_compare_reachables = dv_compare.getReachables();
-        ArrayList<String> reachables = getReachables();
+        ArrayList<String> dv_compare_reachables = dv_compare.keySet();
+        ArrayList<String> reachables = keySet();
         if(dv_compare_reachables.size() != reachables.size()) {
 //            p("Sizes not equal");
             return true;
@@ -108,7 +113,7 @@ public class DV {
             }
         }
         for(String key : reachables) {
-            if(routerMap.get(key).isDifferent(dv_compare.get(key))) {
+            if(routerMap.get(key) != dv_compare.get(key)) {
                 return true;
             }
         }

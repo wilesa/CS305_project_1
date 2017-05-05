@@ -25,10 +25,14 @@ public class RouterEntry {
     }
 
     public RouterEntry(String key, String weight){
-        this.key = key;
-        this.ip = key.split(":")[0];
-        this.port = Integer.parseInt(key.split(":")[1].trim());
-        this.weight = Integer.parseInt(weight.trim());
+        try {
+            this.key = key;
+            this.ip = key.split(":")[0];
+            this.port = Integer.parseInt(key.split(":")[1].trim());
+            this.weight = Integer.parseInt(weight.trim());
+        } catch (Exception e) {
+            System.out.println(key + " " +weight);
+        }
     }
 
     public RouterEntry(String received_msg){
