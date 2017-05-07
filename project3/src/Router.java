@@ -83,7 +83,7 @@ public class Router implements Runnable {
 
             }
         });
-        //thread_advertise.start();
+        thread_advertise.start();
         thread_rx.start();
 
         handleInput();
@@ -101,14 +101,15 @@ public class Router implements Runnable {
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             serverSocket.receive(receivePacket);
             String msg = new String(receivePacket.getData());
-            System.out.println("RECEIVED ("+receivePacket.getAddress()+":"+receivePacket.getPort()+")\n"+msg+"\n");
+            //System.out.println("RECEIVED ("+receivePacket.getAddress()+":"+receivePacket.getPort()+")\n"+msg+"\n");
             InetAddress IPAddress = receivePacket.getAddress();
             int port = receivePacket.getPort();
 
             handleIncDV(msg);
-
+            receiveData = new byte[1024];
 //            System.out.println("RECEIVED (" + IPAddress.toString()+":"+port+"): " + msg);
         }
+//        serverSocket.close();
     }
 
     private void handleIncDV(String msg) {
@@ -134,9 +135,10 @@ public class Router implements Runnable {
     }
 
     public void updateDV() {
+//        boolean changed = false;
         DV tempDV= new DV();
         tempDV.setSource(routerKey);
-        HashMap<String,String> tempFoward = new HashMap<>();
+        HashMap<String,String> tempForward = new HashMap<>();
         ArrayList<String> reachable = new ArrayList<>();
         for(String n : neighbors.keySet()) {
             if(!reachable.contains(n)) reachable.add(n);
@@ -152,21 +154,31 @@ public class Router implements Runnable {
             int min = Integer.MAX_VALUE;
             if (original.containsKey(key)) {
                 min = original.get(key);
-                tempFoward.put(key, key);
+                tempForward.put(key, key);
             }
             for(String s : neighbors.keySet()) {
                 if(neighbors.get(s).containsKey(key))  {
                     tmp = original.get(s) + neighbors.get(s).get(key);
                     if(tmp < min) {
                         min = tmp;
-                        if(tempFoward.containsKey(key)) tempFoward.replace(key, s);
-                        else tempFoward.put(key, s);
+//                        changed = true;
+                        if(tempForward.containsKey(key)) tempForward.replace(key, s);
+                        else tempForward.put(key, s);
                     }
                 }
             }
             tempDV.put(key, min);
         }
+        forward = tempForward;
+        if(dv.isDifferent(tempDV)){
+            dv = tempDV;
+            System.out.println("new dv calculated");
+            for(String s : dv.keySet()) {
+                System.out.println(s + " " + dv.get(s) + " " + forward.get(s));
+            }
+        }
         dv = tempDV;
+
     }
 
     public void sendUpdate() {
@@ -188,9 +200,9 @@ public class Router implements Runnable {
 
     public void send(String msg, String ip, int port) {
         try {
-            DatagramSocket clientSocket = new DatagramSocket();
+            DatagramSocket clientSocket = new DatagramSocket();//this.port);
             InetAddress IPAddress = InetAddress.getByName(ip);
-            p("Sending: " + ip + ":" + port+ " from port: "+clientSocket.getLocalPort()+"\n"+msg);
+            //p("Sending: " + ip + ":" + port+ " from port: "+clientSocket.getLocalPort()+"\n"+msg);
             clientSocket.send(new DatagramPacket(msg.getBytes(), msg.getBytes().length, IPAddress, port));
             clientSocket.close();
         } catch (Exception e) {e.printStackTrace();}
@@ -203,7 +215,7 @@ public class Router implements Runnable {
         while(true) {
             System.out.print("-> ");
             input = sc.nextLine();
-            switch(input) {
+            switch(input.split(" ")[0]) {
                 case "help" : System.out.println(input);break;
                 case "PRINT": {
                     p("Current Distance Vector: ");
@@ -219,7 +231,26 @@ public class Router implements Runnable {
                     break;
                 }
 
-                default: break;
+                case "CHANGE" : {
+                    String[] change = input.split(" ");
+                    if(change.length != 4) break;
+//                    System.out.println("IP: " + change[1]);
+//                    System.out.println("Port: " + change[2]);
+//                    System.out.println("New weight: " + change[3]);
+                    System.out.println("New weight to neighbor " + change[1] + ":" + change[2]);
+                    dv.put(change[1] + ":" + change[2], Integer.parseInt(change[3]));
+                    original.put(change[1] + ":" + change[2], Integer.parseInt(change[3]));
+//                    updateDV();
+                    try {
+                        advertise();
+                    } catch (Exception e) {e.printStackTrace();}
+                    break;
+                }
+
+                default: {
+                    System.out.println("command incorrect");
+                    break;
+                }
             }
         }
     }
