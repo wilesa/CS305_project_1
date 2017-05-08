@@ -226,7 +226,7 @@ public class Router implements Runnable {
             String forwardIP = this.forward.get(ip+":"+port).split(":")[0].trim();
             int forwardPort = Integer.parseInt(this.forward.get(ip+":"+port).split(":")[1].trim());
             InetAddress IPAddress = InetAddress.getByName(forwardIP);
-            String newMsg = "[from " + this.ip + " " + this.port + " to " + ip + " " + port +"]\n" + msg + "\n" + this.ip + ":" + this.port;
+            String newMsg = "[from " + this.ip + " " + this.port + " to " + ip + " " + port +" ]\n" + msg + "\n" + this.ip + ":" + this.port;
             p("Sending: " + ip + ":" + port+ " from port: "+clientSocket.getLocalPort()+"\n"+newMsg + " through " + forwardIP+":"+forwardPort);
             clientSocket.send(new DatagramPacket(newMsg.getBytes(), newMsg.getBytes().length, IPAddress, forwardPort));
             clientSocket.close();
@@ -236,7 +236,6 @@ public class Router implements Runnable {
     public void forward(String msg) {
         try {
             DatagramSocket clientSocket = new DatagramSocket();//this.port);
-            InetAddress IPAddress = InetAddress.getByName(ip);
             Scanner sc = new Scanner(new Scanner(msg).nextLine());
             sc.next();
             String fromIP = sc.next();
@@ -247,10 +246,11 @@ public class Router implements Runnable {
             String forwardIP = this.forward.get(toIP+":"+toPort).split(":")[0].trim();
             int forwardPort = Integer.parseInt(this.forward.get(toIP+":"+toPort).split(":")[1].trim());
             String newMsg = msg + " " + this.ip + ":" + this.port;
+            InetAddress IPAddress = InetAddress.getByName(forwardIP);
 
 
             p("Forwarding! Dest: " + ip + ":" + port+ " from port: "+clientSocket.getLocalPort()+"\n"+newMsg + " through " + forwardIP+":"+forwardPort);
-            clientSocket.send(new DatagramPacket(msg.getBytes(), msg.getBytes().length, IPAddress, port));
+            clientSocket.send(new DatagramPacket(msg.getBytes(), msg.getBytes().length, IPAddress, forwardPort));
             clientSocket.close();
         } catch (Exception e) {e.printStackTrace();}
     }
@@ -291,6 +291,16 @@ public class Router implements Runnable {
                     try {
                         advertise();
                     } catch (Exception e) {e.printStackTrace();}
+                    break;
+                }
+
+                case "MSG" : {
+                    String msg = input.substring(19);
+                    Scanner c = new Scanner(input);
+                    c.next();
+                    String sendIP = c.next();
+                    int sendPort = Integer.parseInt(c.next().trim());
+                    send(msg, sendIP, sendPort);
                     break;
                 }
 
