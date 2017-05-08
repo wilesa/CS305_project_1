@@ -14,7 +14,7 @@ import java.util.*;
  */
 public class Router implements Runnable {
 
-    int poisonReverse;
+    boolean poisonReverse;
     String addr;
     String ip;
     String routerKey;
@@ -33,7 +33,7 @@ public class Router implements Runnable {
     public Router(String filename) {
         this.neighbors = new HashMap<>();
         this.forward = new HashMap<>();
-        this.poisonReverse = 0;
+        this.poisonReverse = false;
         try {
             dv = new DV(new String(Files.readAllBytes(Paths.get(filename))));
             original = new DV(new String(Files.readAllBytes(Paths.get(filename))));
@@ -136,17 +136,17 @@ public class Router implements Runnable {
             if(d.isDifferent(neighbors.get(d.source))){
                 neighbors.replace(d.source, d);
                 updateDV();
-                try {
-                    advertise();
-                } catch (Exception e) {e.printStackTrace();}
+//                try {
+//                    advertise();
+//                } catch (Exception e) {e.printStackTrace();}
             } else {
             }
         } else {
             neighbors.put(d.source, d);
             updateDV();
-            try {
-                advertise();
-            } catch (Exception e) {e.printStackTrace();}
+//            try {
+//                advertise();
+//            } catch (Exception e) {e.printStackTrace();}
         }
     }
 
@@ -174,12 +174,13 @@ public class Router implements Runnable {
             }
             for(String s : neighbors.keySet()) {
                 if(neighbors.get(s).containsKey(key))  {
-                    tmp = original.get(s) + neighbors.get(s).get(key);
-                    if(tmp < min) {
-                        min = tmp;
-//                        changed = true;
-                        if(tempForward.containsKey(key)) tempForward.replace(key, s);
-                        else tempForward.put(key, s);
+                    if(neighbors.get(s).get(key) != Integer.MAX_VALUE) {
+                        tmp = original.get(s) + neighbors.get(s).get(key);
+                        if (tmp < min) {
+                            min = tmp;
+                            if (tempForward.containsKey(key)) tempForward.replace(key, s);
+                            else tempForward.put(key, s);
+                        }
                     }
                 }
             }
@@ -192,6 +193,9 @@ public class Router implements Runnable {
             for(String s : dv.keySet()) {
                 System.out.println(s + " " + dv.get(s) + " " + forward.get(s));
             }
+            try {
+                advertise();
+            } catch (Exception e) {e.printStackTrace();}
         }
         dv = tempDV;
 
@@ -202,9 +206,11 @@ public class Router implements Runnable {
     }
 
     public void advertise() {
-        String m = dv.toString();
+        String m;
         for(String s : neighbors.keySet()) {
             if(!neighbors.get(s).source.equals(dv.source)) {
+                if(poisonReverse) m = dv.getStringPR(s, this.forward);
+                else m = dv.toString();
                 sendDV(m, neighbors.get(s).ip, neighbors.get(s).port);
             }
         }
@@ -243,6 +249,7 @@ public class Router implements Runnable {
             sc.next();
             String toIP = sc.next();
             int toPort = Integer.parseInt(sc.next().trim());
+            if(!this.forward.containsKey(toIP+":"+toPort)) return;
             String forwardIP = this.forward.get(toIP+":"+toPort).split(":")[0].trim();
             int forwardPort = Integer.parseInt(this.forward.get(toIP+":"+toPort).split(":")[1].trim());
             String newMsg = msg + " " + this.ip + ":" + this.port;
@@ -285,9 +292,9 @@ public class Router implements Runnable {
 //                    System.out.println("Port: " + change[2]);
 //                    System.out.println("New weight: " + change[3]);
                     System.out.println("New weight to neighbor " + change[1] + ":" + change[2]);
-                    dv.put(change[1] + ":" + change[2], Integer.parseInt(change[3]));
+//                    dv.put(change[1] + ":" + change[2], Integer.parseInt(change[3]));
                     original.put(change[1] + ":" + change[2], Integer.parseInt(change[3]));
-//                    updateDV();
+                    updateDV();
                     try {
                         advertise();
                     } catch (Exception e) {e.printStackTrace();}
@@ -335,7 +342,7 @@ public class Router implements Runnable {
         return false;
     }
 
-    public void setPoisonReverse(int val) {
+    public void setPoisonReverse(boolean val) {
         this.poisonReverse = val;
     }
 
@@ -344,8 +351,16 @@ public class Router implements Runnable {
     }
 
     public static void main(String[] args) {
-        Router r1 = new Router(args[0]);
-        r1.run();
+        if(args.length == 2){
+            Router r1 = new Router(args[1]);
+            r1.setPoisonReverse(true);
+            r1.run();
+        }
+        else if(args.length == 1){
+            Router r1 = new Router(args[0]);
+            r1.run();
+        }
+        else System.out.println("wrong number of args");
     }
 
 }

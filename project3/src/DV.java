@@ -89,6 +89,20 @@ public class DV {
         return routerMap.containsKey(key);
     }
 
+    public String getStringPR(String dest, HashMap<String, String> forward){
+        HashMap<String, Integer> pr = (HashMap<String, Integer>)routerMap.clone();
+        for(String s : forward.keySet()){
+            if(!s.equals(dest) && forward.get(s).equals(dest)) pr.replace(s, Integer.MAX_VALUE);
+        }
+        String s = "";
+        ArrayList<String> out = new ArrayList<>(pr.keySet());
+        for(int i = 0; i < out.size(); i++) {
+            s = s + out.get(i) + " " + pr.get(out.get(i)).toString();
+            if(i != out.size()-1) s = s + "\n";
+        }
+        return s.trim();
+    }
+
     public void update(DV dv_new) {
 
     }
