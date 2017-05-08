@@ -141,7 +141,6 @@ public class Router implements Runnable {
         String toIP = sc.next();
         int toPort = Integer.parseInt(sc.next().trim());
         if(toIP.equals(this.ip) && toPort==this.port) {
-            p("OK SHIT WE JUST REVEIVED A MESSAGE");
             p(msg);
         } else forward(msg);
     }
@@ -252,7 +251,7 @@ public class Router implements Runnable {
             int forwardPort = Integer.parseInt(this.forward.get(ip+":"+port).split(":")[1].trim());
             InetAddress IPAddress = InetAddress.getByName(forwardIP);
             String newMsg = "[from " + this.ip + " " + this.port + " to " + ip + " " + port +" ]\n" + msg + "\n" + this.ip + ":" + this.port;
-            p("Sending: " + ip + ":" + port+ " from port: "+clientSocket.getLocalPort()+"\n"+newMsg + " through " + forwardIP+":"+forwardPort);
+//            p("Sending: " + ip + ":" + port+ " from port: "+clientSocket.getLocalPort()+"\n"+newMsg + " through " + forwardIP+":"+forwardPort);
             clientSocket.send(new DatagramPacket(newMsg.getBytes(), newMsg.getBytes().length, IPAddress, forwardPort));
             clientSocket.close();
         } catch (Exception e) {e.printStackTrace();}
@@ -275,8 +274,8 @@ public class Router implements Runnable {
             InetAddress IPAddress = InetAddress.getByName(forwardIP);
 
 
-            p("Forwarding! Dest: " + ip + ":" + port+ " from port: "+clientSocket.getLocalPort()+"\n"+newMsg + " through " + forwardIP+":"+forwardPort);
-            clientSocket.send(new DatagramPacket(msg.getBytes(), msg.getBytes().length, IPAddress, forwardPort));
+            p("Message msg from " + fromIP + ":" + fromPort+ " to " + toIP + ":" + toPort + "\n"+newMsg);
+            clientSocket.send(new DatagramPacket(newMsg.getBytes(), newMsg.getBytes().length, IPAddress, forwardPort));
             clientSocket.close();
         } catch (Exception e) {e.printStackTrace();}
     }
