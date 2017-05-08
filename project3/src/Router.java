@@ -105,11 +105,27 @@ public class Router implements Runnable {
             InetAddress IPAddress = receivePacket.getAddress();
             int port = receivePacket.getPort();
 
-            handleIncDV(msg);
+            Scanner sc = new Scanner(msg);
+            if (sc.nextLine().contains("[")) handleIncMsg(msg);
+            else handleIncDV(msg);
             receiveData = new byte[1024];
 //            System.out.println("RECEIVED (" + IPAddress.toString()+":"+port+"): " + msg);
         }
 //        serverSocket.close();
+    }
+
+    private void handleIncMsg(String msg) {
+        Scanner sc = new Scanner(new Scanner(msg).nextLine());
+        sc.next();
+        String fromIP = sc.next();
+        String fromPort = sc.next();
+        sc.next();
+        String toIP = sc.next();
+        int toPort = Integer.parseInt(sc.next().trim());
+        if(toIP.equals(this.ip) && toPort==this.port) {
+            p("OK SHIT WE JUST REVEIVED A MESSAGE");
+            p(msg);
+        } else forward(msg);
     }
 
     private void handleIncDV(String msg) {
@@ -185,24 +201,55 @@ public class Router implements Runnable {
 
     }
 
-    public void forward() {
-
-    }
-
     public void advertise() {
         String m = dv.toString();
         for(String s : neighbors.keySet()) {
             if(!neighbors.get(s).source.equals(dv.source)) {
-                send(m, neighbors.get(s).ip, neighbors.get(s).port);
+                sendDV(m, neighbors.get(s).ip, neighbors.get(s).port);
             }
         }
+    }
+
+    public void sendDV(String msg, String ip, int port) {
+        try {
+            DatagramSocket clientSocket = new DatagramSocket();//this.port);
+            InetAddress IPAddress = InetAddress.getByName(ip);
+            //p("Sending: " + ip + ":" + port+ " from port: "+clientSocket.getLocalPort()+"\n"+msg);
+            clientSocket.send(new DatagramPacket(msg.getBytes(), msg.getBytes().length, IPAddress, port));
+            clientSocket.close();
+        } catch (Exception e) {e.printStackTrace();}
     }
 
     public void send(String msg, String ip, int port) {
         try {
             DatagramSocket clientSocket = new DatagramSocket();//this.port);
+            String forwardIP = this.forward.get(ip+":"+port).split(":")[0].trim();
+            int forwardPort = Integer.parseInt(this.forward.get(ip+":"+port).split(":")[1].trim());
+            InetAddress IPAddress = InetAddress.getByName(forwardIP);
+            String newMsg = "[from " + this.ip + " " + this.port + " to " + ip + " " + port +"]\n" + msg + "\n" + this.ip + ":" + this.port;
+            p("Sending: " + ip + ":" + port+ " from port: "+clientSocket.getLocalPort()+"\n"+newMsg + " through " + forwardIP+":"+forwardPort);
+            clientSocket.send(new DatagramPacket(newMsg.getBytes(), newMsg.getBytes().length, IPAddress, forwardPort));
+            clientSocket.close();
+        } catch (Exception e) {e.printStackTrace();}
+    }
+
+    public void forward(String msg) {
+        try {
+            DatagramSocket clientSocket = new DatagramSocket();//this.port);
             InetAddress IPAddress = InetAddress.getByName(ip);
-            //p("Sending: " + ip + ":" + port+ " from port: "+clientSocket.getLocalPort()+"\n"+msg);
+            Scanner sc = new Scanner(new Scanner(msg).nextLine());
+            sc.next();
+            String fromIP = sc.next();
+            String fromPort = sc.next();
+            sc.next();
+            String toIP = sc.next();
+            int toPort = Integer.parseInt(sc.next().trim());
+            String forwardIP = this.forward.get(toIP+":"+toPort).split(":")[0].trim();
+            int forwardPort = Integer.parseInt(this.forward.get(toIP+":"+toPort).split(":")[1].trim());
+            String newMsg = msg + " " + this.ip + ":" + this.port;
+
+
+            p("Forwarding! Dest: " + ip + ":" + port+ " from port: "+clientSocket.getLocalPort()+"\n"+newMsg + " through " + forwardIP+":"+forwardPort);
             clientSocket.send(new DatagramPacket(msg.getBytes(), msg.getBytes().length, IPAddress, port));
             clientSocket.close();
         } catch (Exception e) {e.printStackTrace();}
