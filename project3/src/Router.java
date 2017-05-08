@@ -24,8 +24,11 @@ public class Router implements Runnable {
     HashMap<String, DV> neighbors;
     HashMap<String, String> forward;
 
+    ArrayList<String> active;
+
     Thread thread_advertise;
     Thread thread_rx;
+    Thread thread_timeout;
 
     DV dv;
 
@@ -34,6 +37,7 @@ public class Router implements Runnable {
         this.neighbors = new HashMap<>();
         this.forward = new HashMap<>();
         this.poisonReverse = false;
+        this.active = new ArrayList<>();
         try {
             dv = new DV(new String(Files.readAllBytes(Paths.get(filename))));
             original = new DV(new String(Files.readAllBytes(Paths.get(filename))));
@@ -83,8 +87,22 @@ public class Router implements Runnable {
 
             }
         });
+
+        thread_timeout = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    while (true) {
+                        Thread.sleep(10000);
+                        removeInactive();
+                    }
+                } catch (Exception e) {e.printStackTrace();}
+            }
+        });
+
         thread_advertise.start();
         thread_rx.start();
+        thread_timeout.start();
 
         handleInput();
     }
@@ -132,16 +150,17 @@ public class Router implements Runnable {
         Scanner sc = new Scanner(msg);
         if(isCorrupt(msg)) return;
         DV d = new DV(msg);
+
+        //received a dv, so router is active
+        if(!active.contains(d.source)) active.add(d.source);
+
         if (neighbors.containsKey(d.source)) {
             if(d.isDifferent(neighbors.get(d.source))){
                 neighbors.replace(d.source, d);
                 updateDV();
-//                try {
-//                    advertise();
-//                } catch (Exception e) {e.printStackTrace();}
-            } else {
             }
-        } else {
+        }
+        else {
             neighbors.put(d.source, d);
             updateDV();
 //            try {
@@ -340,6 +359,20 @@ public class Router implements Runnable {
             return true;
         }
         return false;
+    }
+
+    public void removeInactive(){
+        HashMap<String, DV> actN = new HashMap<>();
+//        if(active.isEmpty()) {
+//            neighbors.clear();
+//            return;
+//        }
+        for(String s: neighbors.keySet()){
+            if(active.contains(s)) actN.put(s, neighbors.get(s));
+            else p("Neighbor " + s + " dropped");
+        }
+        neighbors = actN;
+        active.clear();
     }
 
     public void setPoisonReverse(boolean val) {
